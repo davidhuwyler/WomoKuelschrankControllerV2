@@ -2,9 +2,9 @@
 #include <ESP32Encoder.h>
 #include "rotaryencoder.h"
 
-#define ENCODER_A_PIN   32
-#define ENCODER_B_PIN   33
-#define ENCODER_BTN_PIN 25
+#define ENCODER_A_PIN   36
+#define ENCODER_B_PIN   37
+#define ENCODER_BTN_PIN 38
 
 
 volatile bool encoderButtonPressed = false;

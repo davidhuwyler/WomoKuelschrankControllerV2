@@ -4,7 +4,7 @@
 #include "rotaryencoder.h"
 
 /* ------------------------  PINS ------------------------ */
-#define POWER_OUT_PIN 25
+#define POWER_OUT_PIN 39
 
 /* ------------------------  globals ------------------------ */
 float voltage_current = 0.00;
