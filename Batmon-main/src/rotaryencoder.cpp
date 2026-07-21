@@ -11,8 +11,29 @@ volatile bool encoderButtonPressed = false;
 volatile bool encoderButtonToggle = false;
 volatile bool oneSecondTick = false;
 
+static uint32_t rotaryModuloVal=0xFFFFFFFF;
+static uint32_t rotaryMinVal = 0;
+static uint32_t rotaryMaxVal = 0xFFFFFFFF;
+
 ESP32Encoder encoder;
 
+void setEncoderRange(uint32_t value, uint32_t min, uint32_t max) {
+    encoder.setCount(value);
+    rotaryMinVal = min;
+    rotaryMaxVal = max;
+}
+
+uint32_t getEncoderValue() {
+    int32_t val = encoder.getCount();
+    if (val < rotaryMinVal) {
+        val = rotaryMinVal;
+        encoder.setCount(val);
+    } else if (val > rotaryMaxVal) {
+        val = rotaryMaxVal;
+        encoder.setCount(val);
+    }
+    return val;
+}
 bool getEncoderButtonToggleState() {
     return encoderButtonToggle;
 }
@@ -24,7 +45,7 @@ void IRAM_ATTR encoderButtonISR()
     encoderButtonToggle = !encoderButtonToggle;
 }
 
-void rotaryEncoder_init()
+void rotaryencoder_init()
 {
     // ---------------- Encoder ----------------
     ESP32Encoder::useInternalWeakPullResistors = puType::up;
@@ -39,9 +60,4 @@ void rotaryEncoder_init()
         digitalPinToInterrupt(ENCODER_BTN_PIN),
         encoderButtonISR,
         FALLING);
-}
-
-void loop()
-{
-
 }

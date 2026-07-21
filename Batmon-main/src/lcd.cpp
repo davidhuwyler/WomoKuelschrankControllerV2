@@ -1,110 +1,149 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
-#include "tft.h"
+#include "lcd.h"
 
 
 TFT_eSPI tft = TFT_eSPI();  // Create object "tft"
 
 
-def drawScreen_State() :
-    global old_state
-    if(old_state!=state):
-        tft.text((85, 80), old_state, TFT.BLACK, sysfont, 2)
-        tft.text((85, 80), state, TFT.WHITE, sysfont, 2)
-        old_state = state
-
-def drawScreen_Voltage() :
-    global old_voltage
-    if(int(old_voltage*100)!=int(voltage_current*100)):
-        tft.text((15, 40), '{0:.2f}'.format(old_voltage), TFT.BLACK, sysfont, 2)
-        tft.text((15, 40), '{0:.2f}'.format(voltage_current), TFT.WHITE, sysfont, 2)
-        old_voltage = voltage_current
-
-def drawScreen_Disconnect() :
-    global old_voltage_disconnect
-    if(old_voltage_disconnect!=voltage_disconnect):
-        tft.text((85, 40), '{0:.2f}'.format(old_voltage_disconnect), TFT.BLACK, sysfont, 2)
-        tft.text((85, 40), '{0:.2f}'.format(voltage_disconnect), TFT.WHITE, sysfont, 2)
-        old_voltage_disconnect = voltage_disconnect
-
-def drawScreen_Timer() :
-    global old_time
-    global old_time_s
-    if old_time!=timer_min:
-        tft.text((15, 80), str(old_time), TFT.BLACK, sysfont, 2)
-        tft.text((15, 80), str(timer_min), TFT.WHITE, sysfont, 2)
-        old_time = timer_min
-
-    if old_time_s!=timer_seconds:
-        tft.text((50, 80), str(old_time_s), TFT.BLACK, sysfont, 1)
-        tft.text((50, 80), str(timer_seconds), TFT.WHITE, sysfont, 1)
-        old_time_s = timer_seconds
-
-def drawScreen():
-    drawScreen_State()
-    drawScreen_Voltage()
-    drawScreen_Disconnect()
-    drawScreen_Timer()
-
-def draw_lcd_selector() :
-    global lcd_change_val_mode
-    global voltage_disconnect
-    global selector_on    
-    global timer    
-    selector_on = not selector_on
-
-    if lcd_selected == 0: # disconnect
-        highlight_timer_off()
-        highlight_state_off()
-        if selector_on==True:
-            highlight_disconnect() 
-        else:
-            highlight_disconnect_off()
-    elif lcd_selected == 1: # timer
-        highlight_disconnect_off()
-        highlight_state_off()
-        if selector_on==True:
-            highlight_timer() 
-        else:
-            highlight_timer_off()
-    elif lcd_selected == 2: # state
-        highlight_timer_off()
-        highlight_disconnect_off()
-        if selector_on==True:
-            highlight_state() 
-        else:
-            highlight_state_off()
-
-void highlight_state(){
-    tft.drawLine(15, 65, 130, 65, TFT_RED);
-}
-void highlight_state_off(){
-    tft.line((85, 100), (145,100), tft.BLACK)
+void drawScreen_State(bool* old_state, bool* state) {
+    if (*old_state != *state) {
+        tft.setTextColor(TFT_BLACK, TFT_BLACK);
+        tft.setTextDatum(TL_DATUM);
+        tft.setTextFont(2);
+        tft.drawString(String(*old_state), 85, 80);
+        
+        tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        tft.drawString(String(*state), 85, 80);
+        
+        *old_state = *state;
+    }
 }
 
-def highlight_disconnect():
-    tft.line((85, 60), (145,60), tft.RED)
-def highlight_disconnect_off():
-    tft.line((85, 60), (145,60), tft.BLACK)
 
-def highlight_timer():
-    tft.line((15, 100), (75,100), tft.RED)
-def highlight_timer_off():
-    tft.line((15, 100), (75,100), tft.BLACK)
+void drawScreen_Voltage(float* old_voltage, float* voltage_current) {
+    if (int(*old_voltage * 100) != int(*voltage_current * 100)) {
+        tft.setTextColor(TFT_BLACK, TFT_BLACK);
+        tft.setTextDatum(TL_DATUM);
+        tft.setTextFont(2);
+        tft.drawString(String(*old_voltage), 15, 40);
+        
+        tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        tft.drawString(String(*voltage_current), 15, 40);
+        
+        *old_voltage = *voltage_current;
+    }
+} 
 
-def set_state_value():
-    global state
-    highlight_state()
-    highlight_disconnect_off()
-    highlight_timer_off()
-    rotary.set(value=0,min_val=0,max_val=1)
-    while lcd_change_val_mode ==True:
-        if rotary.value()==0:
-            state="OFF"
-        else:
-            state="ON"
-        drawScreen_State()
+void drawScreen_Disconnect(float* old_voltage_disconnect, float* voltage_disconnect) {
+    if (*old_voltage_disconnect != *voltage_disconnect) {
+        tft.setTextColor(TFT_BLACK, TFT_BLACK);
+        tft.setTextDatum(TL_DATUM);
+        tft.setTextFont(2);
+        tft.drawString(String(*old_voltage_disconnect), 85, 40);
+        
+        tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        tft.drawString(String(*voltage_disconnect), 85, 40);
+        
+        *old_voltage_disconnect = *voltage_disconnect;
+    }
+}
 
+void drawScreen_Timer(int* old_time, int* timer_min, int* old_time_s, int* timer_seconds) {
+    if (*old_time != *timer_min) {
+        tft.setTextColor(TFT_BLACK, TFT_BLACK);
+        tft.setTextDatum(TL_DATUM);
+        tft.setTextFont(2);
+        tft.drawString(String(*old_time), 15, 80);
+        
+        tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        tft.drawString(String(*timer_min), 15, 80);
+        
+        *old_time = *timer_min;
+    }
+
+    if (*old_time_s != *timer_seconds) {
+        tft.setTextColor(TFT_BLACK, TFT_BLACK);
+        tft.setTextDatum(TL_DATUM);
+        tft.setTextFont(1);
+        tft.drawString(String(*old_time_s), 50, 80);
+        
+        tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        tft.drawString(String(*timer_seconds), 50, 80);
+        
+        *old_time_s = *timer_seconds;
+    }
+}
+
+void draw_lcd_selector(bool* selector_on, int lcd_selected) {
+    *selector_on = !*selector_on;
+    if(lcd_selected == 0) // disconnect
+    {
+        highlight_timer_off();
+        highlight_state_off();
+        if(*selector_on==true)
+        {
+            highlight_disconnect(); 
+        }
+        else
+        {
+            highlight_disconnect_off();
+        }
+    }
+    else if(lcd_selected == 1) // timer
+    {
+        highlight_disconnect_off();
+        highlight_state_off();
+        if(*selector_on==true)
+        {
+            highlight_timer(); 
+        }
+        else
+        {
+            highlight_timer_off();
+        }
+    }
+    else if(lcd_selected == 2) // state
+    {
+        highlight_timer_off();
+        highlight_disconnect_off();
+        if(*selector_on==true)
+        {
+            highlight_state(); 
+        }
+        else
+        {
+            highlight_state_off();
+        }
+    }
+}
+
+void highlight_state()
+{
+    tft.drawLine(175, 165, 305, 165, TFT_RED);
+}
+void highlight_state_off()
+{
+    tft.drawLine(175, 165, 305, 165, TFT_BLACK);
+}
+
+void highlight_disconnect()
+{
+    tft.drawLine(175, 80, 305, 80, TFT_RED);
+}
+void highlight_disconnect_off()
+{
+    tft.drawLine(175, 80, 305, 80, TFT_BLACK);
+}
+
+void highlight_timer()
+{
+    tft.drawLine(15, 165, 145, 165, TFT_RED);
+}
+void highlight_timer_off()
+{
+    tft.drawLine(15, 165, 145, 165, TFT_BLACK);
+}
 
 
 void draw_static_display()

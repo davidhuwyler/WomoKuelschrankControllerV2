@@ -22,11 +22,6 @@ Config config = {
     {"50:54:7B:5E:89:A9"}  // Initialize vector with a list of device MAC addresses
 };
 
-void batmon_init() {
-    NimBLEDevice::init("");  
-    precomputeEncryptedCommand(); // Precompute the encrypted command 
-}
-
 // Function to decrypt data using AES
 String decrypt(uint8_t* crypted, size_t length) {
     if (length != 16) {
@@ -201,4 +196,9 @@ void get_batmon_data(struct BM6Data* data)
   data->voltage = bm6_data.voltage;
   data->temperature = bm6_data.temperature;
   data->power = bm6_data.power;
+}
+
+void batmon_init() {
+    NimBLEDevice::init("");  
+    precomputeEncryptedCommand(); // Precompute the encrypted command 
 }

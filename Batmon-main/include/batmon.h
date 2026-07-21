@@ -6,5 +6,5 @@ struct BM6Data {
   int power;
 };
 
-void batmon_init(void);
+void batmon_init();
 void get_batmon_data(struct BM6Data* data);
