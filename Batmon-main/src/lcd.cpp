@@ -5,16 +5,53 @@
 
 TFT_eSPI tft = TFT_eSPI();  // Create object "tft"
 
+#define TEXT_FONT_VALUE 2
+#define TEXT_FONT_LABEL 1
+
+#define DISCONNECT_HIGHLIGHT_FROM_X 135  // Upper Right Quadrant Highlighter From Point: X
+#define DISCONNECT_HIGHLIGHT_FROM_Y 67  // Upper Right Quadrant Highlighter From Point: Y
+#define DISCONNECT_HIGHLIGHT_TO_X 225  // Upper Right Quadrant Highlighter To Point: X
+#define DISCONNECT_HIGHLIGHT_TO_Y DISCONNECT_HIGHLIGHT_FROM_Y  // Upper Right Quadrant Highlighter To Point: Y
+#define DISCONNECT_VALUE_X DISCONNECT_HIGHLIGHT_FROM_X
+#define DISCONNECT_VALUE_Y 5
+#define DISCONNECT_TEXT_X DISCONNECT_HIGHLIGHT_FROM_X
+#define DISCONNECT_TEXT_Y 57
+
+#define TIMER_HIGHLIGHT_FROM_X 15  // Lower Left Quadrant Highlighter From Point: X
+#define TIMER_HIGHLIGHT_FROM_Y 134  // Lower Left Quadrant Highlighter From Point: Y
+#define TIMER_HIGHLIGHT_TO_X 105  // Lower Left Quadrant Highlighter To Point: X
+#define TIMER_HIGHLIGHT_TO_Y TIMER_HIGHLIGHT_FROM_Y  // Lower Left Quadrant Highlighter To Point: Y
+#define TIMER_VALUE_X TIMER_HIGHLIGHT_FROM_X
+#define TIMER_VALUE_Y 72
+#define TIMER_SECONDS_VALUE_X TIMER_VALUE_X+50
+#define TIMER_SECONDS_VALUE_Y TIMER_VALUE_Y
+
+#define TIMER_TEXT_X TIMER_HIGHLIGHT_FROM_X
+#define TIMER_TEXT_Y 124
+
+#define STATE_HIGHLIGHT_FROM_X DISCONNECT_HIGHLIGHT_FROM_X  // Lower Right Quadrant Highlighter From Point: X
+#define STATE_HIGHLIGHT_FROM_Y TIMER_HIGHLIGHT_FROM_Y  // Lower Right Quadrant Highlighter From Point: Y
+#define STATE_HIGHLIGHT_TO_X DISCONNECT_HIGHLIGHT_TO_X  // Lower Right Quadrant Highlighter To Point: X
+#define STATE_HIGHLIGHT_TO_Y TIMER_HIGHLIGHT_FROM_Y  // Lower Right Quadrant Highlighter To Point: Y
+#define STATE_VALUE_X STATE_HIGHLIGHT_FROM_X
+#define STATE_VALUE_Y TIMER_VALUE_Y
+#define STATE_TEXT_X STATE_HIGHLIGHT_FROM_X
+#define STATE_TEXT_Y TIMER_TEXT_Y
+
+#define CURRENT_VALUE_X TIMER_VALUE_X
+#define CURRENT_VALUE_Y DISCONNECT_VALUE_Y
+#define CURRENT_TEXT_X TIMER_TEXT_X
+#define CURRENT_TEXT_Y DISCONNECT_TEXT_Y
 
 void drawScreen_State(bool* old_state, bool* state) {
     if (*old_state != *state) {
         tft.setTextColor(TFT_BLACK, TFT_BLACK);
         tft.setTextDatum(TL_DATUM);
-        tft.setTextFont(2);
-        tft.drawString(String(*old_state), 85, 80);
+        tft.setTextFont(TEXT_FONT_VALUE);
+        tft.drawString(String(*old_state), STATE_VALUE_X, STATE_VALUE_Y);
         
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString(String(*state), 85, 80);
+        tft.drawString(String(*state), STATE_VALUE_X, STATE_VALUE_Y);
         
         *old_state = *state;
     }
@@ -25,11 +62,11 @@ void drawScreen_Voltage(float* old_voltage, float* voltage_current) {
     if (int(*old_voltage * 100) != int(*voltage_current * 100)) {
         tft.setTextColor(TFT_BLACK, TFT_BLACK);
         tft.setTextDatum(TL_DATUM);
-        tft.setTextFont(2);
-        tft.drawString(String(*old_voltage), 15, 40);
+        tft.setTextFont(TEXT_FONT_VALUE);
+        tft.drawString(String(*old_voltage), CURRENT_VALUE_X, CURRENT_VALUE_Y);
         
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString(String(*voltage_current), 15, 40);
+        tft.drawString(String(*voltage_current), CURRENT_VALUE_X, CURRENT_VALUE_Y);
         
         *old_voltage = *voltage_current;
     }
@@ -39,11 +76,11 @@ void drawScreen_Disconnect(float* old_voltage_disconnect, float* voltage_disconn
     if (*old_voltage_disconnect != *voltage_disconnect) {
         tft.setTextColor(TFT_BLACK, TFT_BLACK);
         tft.setTextDatum(TL_DATUM);
-        tft.setTextFont(2);
-        tft.drawString(String(*old_voltage_disconnect), 85, 40);
+        tft.setTextFont(TEXT_FONT_VALUE);
+        tft.drawString(String(*old_voltage_disconnect), DISCONNECT_VALUE_X, DISCONNECT_VALUE_Y);
         
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString(String(*voltage_disconnect), 85, 40);
+        tft.drawString(String(*voltage_disconnect), DISCONNECT_VALUE_X, DISCONNECT_VALUE_Y);
         
         *old_voltage_disconnect = *voltage_disconnect;
     }
@@ -53,11 +90,11 @@ void drawScreen_Timer(int* old_time, int* timer_min, int* old_time_s, int* timer
     if (*old_time != *timer_min) {
         tft.setTextColor(TFT_BLACK, TFT_BLACK);
         tft.setTextDatum(TL_DATUM);
-        tft.setTextFont(2);
-        tft.drawString(String(*old_time), 15, 80);
+        tft.setTextFont(TEXT_FONT_VALUE);
+        tft.drawString(String(*old_time), TIMER_VALUE_X, TIMER_VALUE_Y);
         
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString(String(*timer_min), 15, 80);
+        tft.drawString(String(*timer_min), TIMER_VALUE_X, TIMER_VALUE_Y);
         
         *old_time = *timer_min;
     }
@@ -66,10 +103,10 @@ void drawScreen_Timer(int* old_time, int* timer_min, int* old_time_s, int* timer
         tft.setTextColor(TFT_BLACK, TFT_BLACK);
         tft.setTextDatum(TL_DATUM);
         tft.setTextFont(1);
-        tft.drawString(String(*old_time_s), 50, 80);
+        tft.drawString(String(*old_time_s), TIMER_SECONDS_VALUE_X, TIMER_SECONDS_VALUE_Y);
         
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString(String(*timer_seconds), 50, 80);
+        tft.drawString(String(*timer_seconds), TIMER_SECONDS_VALUE_X, TIMER_SECONDS_VALUE_Y);
         
         *old_time_s = *timer_seconds;
     }
@@ -79,70 +116,70 @@ void draw_lcd_selector(bool* selector_on, int lcd_selected) {
     *selector_on = !*selector_on;
     if(lcd_selected == 0) // disconnect
     {
-        highlight_timer_off();
-        highlight_state_off();
+        TIMER_HIGHLIGHT_off();
+        STATE_HIGHLIGHT_off();
         if(*selector_on==true)
         {
-            highlight_disconnect(); 
+            DISCONNECT_HIGHLIGHT(); 
         }
         else
         {
-            highlight_disconnect_off();
+            DISCONNECT_HIGHLIGHT_off();
         }
     }
     else if(lcd_selected == 1) // timer
     {
-        highlight_disconnect_off();
-        highlight_state_off();
+        DISCONNECT_HIGHLIGHT_off();
+        STATE_HIGHLIGHT_off();
         if(*selector_on==true)
         {
-            highlight_timer(); 
+            TIMER_HIGHLIGHT(); 
         }
         else
         {
-            highlight_timer_off();
+            TIMER_HIGHLIGHT_off();
         }
     }
     else if(lcd_selected == 2) // state
     {
-        highlight_timer_off();
-        highlight_disconnect_off();
+        TIMER_HIGHLIGHT_off();
+        DISCONNECT_HIGHLIGHT_off();
         if(*selector_on==true)
         {
-            highlight_state(); 
+            STATE_HIGHLIGHT(); 
         }
         else
         {
-            highlight_state_off();
+            STATE_HIGHLIGHT_off();
         }
     }
 }
 
-void highlight_state()
+void STATE_HIGHLIGHT()
 {
-    tft.drawLine(175, 165, 305, 165, TFT_RED);
+    tft.drawLine(STATE_HIGHLIGHT_FROM_X, STATE_HIGHLIGHT_FROM_Y, STATE_HIGHLIGHT_TO_X, STATE_HIGHLIGHT_TO_Y, TFT_RED);
 }
-void highlight_state_off()
+void STATE_HIGHLIGHT_off()
 {
-    tft.drawLine(175, 165, 305, 165, TFT_BLACK);
-}
-
-void highlight_disconnect()
-{
-    tft.drawLine(175, 80, 305, 80, TFT_RED);
-}
-void highlight_disconnect_off()
-{
-    tft.drawLine(175, 80, 305, 80, TFT_BLACK);
+    tft.drawLine(STATE_HIGHLIGHT_FROM_X, STATE_HIGHLIGHT_FROM_Y, STATE_HIGHLIGHT_TO_X, STATE_HIGHLIGHT_TO_Y, TFT_BLACK);
 }
 
-void highlight_timer()
+void DISCONNECT_HIGHLIGHT()
 {
-    tft.drawLine(15, 165, 145, 165, TFT_RED);
+    tft.drawLine(DISCONNECT_HIGHLIGHT_FROM_X, DISCONNECT_HIGHLIGHT_FROM_Y, DISCONNECT_HIGHLIGHT_TO_X, DISCONNECT_HIGHLIGHT_TO_Y, TFT_RED);
 }
-void highlight_timer_off()
+void DISCONNECT_HIGHLIGHT_off()
 {
-    tft.drawLine(15, 165, 145, 165, TFT_BLACK);
+    tft.drawLine(DISCONNECT_HIGHLIGHT_FROM_X, DISCONNECT_HIGHLIGHT_FROM_Y, DISCONNECT_HIGHLIGHT_TO_X, DISCONNECT_HIGHLIGHT_TO_Y, TFT_BLACK);
+}
+
+void TIMER_HIGHLIGHT()
+{
+    tft.drawLine(TIMER_HIGHLIGHT_FROM_X, TIMER_HIGHLIGHT_FROM_Y, TIMER_HIGHLIGHT_TO_X, TIMER_HIGHLIGHT_TO_Y, TFT_RED);
+}
+void TIMER_HIGHLIGHT_off()
+{
+    tft.drawLine(TIMER_HIGHLIGHT_FROM_X, TIMER_HIGHLIGHT_FROM_Y, TIMER_HIGHLIGHT_TO_X, TIMER_HIGHLIGHT_TO_Y, TFT_BLACK);
 }
 
 
@@ -151,11 +188,11 @@ void draw_static_display()
         // ---------- upper left ----------
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
-    tft.setTextFont(2);
-    tft.drawString("Current", 15, 65);
-    tft.drawString("Disconnect", 175, 65);
-    tft.drawString("Timer", 15, 145);
-    tft.drawString("State", 175, 145);
+    tft.setTextFont(TEXT_FONT_LABEL);
+    tft.drawString("Current", CURRENT_TEXT_X, CURRENT_TEXT_Y);
+    tft.drawString("Disconnect", DISCONNECT_TEXT_X, DISCONNECT_TEXT_Y);
+    tft.drawString("Timer", TIMER_TEXT_X, TIMER_TEXT_Y);
+    tft.drawString("State", STATE_TEXT_X, STATE_TEXT_Y);
 }
 
 void lcd_init() {

@@ -1,4 +1,6 @@
 Product: TTGO T-Display
+#define TFT_WIDTH  135
+#define TFT_HEIGHT 240
 
 Rotaryencoder Pins:
 #define ENCODER_A_PIN   36
