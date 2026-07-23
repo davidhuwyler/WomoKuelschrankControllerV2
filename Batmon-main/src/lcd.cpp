@@ -116,68 +116,68 @@ void draw_lcd_selector(bool* selector_on, int lcd_selected) {
     *selector_on = !*selector_on;
     if(lcd_selected == 0) // disconnect
     {
-        TIMER_HIGHLIGHT_off();
-        STATE_HIGHLIGHT_off();
+        highlight_timer_off();
+        highlight_state_off();
         if(*selector_on==true)
         {
-            DISCONNECT_HIGHLIGHT(); 
+            highlight_disconnect(); 
         }
         else
         {
-            DISCONNECT_HIGHLIGHT_off();
+            highlight_disconnect_off();
         }
     }
     else if(lcd_selected == 1) // timer
     {
-        DISCONNECT_HIGHLIGHT_off();
-        STATE_HIGHLIGHT_off();
+        highlight_disconnect_off();
+        highlight_state_off();
         if(*selector_on==true)
         {
-            TIMER_HIGHLIGHT(); 
+            highlight_timer(); 
         }
         else
         {
-            TIMER_HIGHLIGHT_off();
+            highlight_timer_off();
         }
     }
     else if(lcd_selected == 2) // state
     {
-        TIMER_HIGHLIGHT_off();
-        DISCONNECT_HIGHLIGHT_off();
+        highlight_timer_off();
+        highlight_disconnect_off();
         if(*selector_on==true)
         {
-            STATE_HIGHLIGHT(); 
+            highlight_state(); 
         }
         else
         {
-            STATE_HIGHLIGHT_off();
+            highlight_state_off();
         }
     }
 }
 
-void STATE_HIGHLIGHT()
+void highlight_state()
 {
     tft.drawLine(STATE_HIGHLIGHT_FROM_X, STATE_HIGHLIGHT_FROM_Y, STATE_HIGHLIGHT_TO_X, STATE_HIGHLIGHT_TO_Y, TFT_RED);
 }
-void STATE_HIGHLIGHT_off()
+void highlight_state_off()
 {
     tft.drawLine(STATE_HIGHLIGHT_FROM_X, STATE_HIGHLIGHT_FROM_Y, STATE_HIGHLIGHT_TO_X, STATE_HIGHLIGHT_TO_Y, TFT_BLACK);
 }
 
-void DISCONNECT_HIGHLIGHT()
+void highlight_disconnect()
 {
     tft.drawLine(DISCONNECT_HIGHLIGHT_FROM_X, DISCONNECT_HIGHLIGHT_FROM_Y, DISCONNECT_HIGHLIGHT_TO_X, DISCONNECT_HIGHLIGHT_TO_Y, TFT_RED);
 }
-void DISCONNECT_HIGHLIGHT_off()
+void highlight_disconnect_off()
 {
     tft.drawLine(DISCONNECT_HIGHLIGHT_FROM_X, DISCONNECT_HIGHLIGHT_FROM_Y, DISCONNECT_HIGHLIGHT_TO_X, DISCONNECT_HIGHLIGHT_TO_Y, TFT_BLACK);
 }
 
-void TIMER_HIGHLIGHT()
+void highlight_timer()
 {
     tft.drawLine(TIMER_HIGHLIGHT_FROM_X, TIMER_HIGHLIGHT_FROM_Y, TIMER_HIGHLIGHT_TO_X, TIMER_HIGHLIGHT_TO_Y, TFT_RED);
 }
-void TIMER_HIGHLIGHT_off()
+void highlight_timer_off()
 {
     tft.drawLine(TIMER_HIGHLIGHT_FROM_X, TIMER_HIGHLIGHT_FROM_Y, TIMER_HIGHLIGHT_TO_X, TIMER_HIGHLIGHT_TO_Y, TFT_BLACK);
 }
