@@ -14,12 +14,13 @@ uint8_t encryptedCommandBytes[16];
 
 BM6Data bm6_data = {0, 0, 0};
 
+
 struct Config {  
   std::vector<String> devices;
 };
 
 Config config = {
-    {"50:54:7B:5E:89:A9"}  // Initialize vector with a list of device MAC addresses
+    {"C8:17:F5:29:36:77"}  // Use BLE Scanner app to find the mac of the BM6 device
 };
 
 // Function to decrypt data using AES
@@ -187,12 +188,11 @@ void getBM6Data(const char* address) {
 
 void get_batmon_data(struct BM6Data* data)
 {
-  for (String& device : config.devices) {
-    Serial.print("Processing device: ");
-    Serial.println(device);
-    getBM6Data(device.c_str());
-    delay(1000); // Small delay between each device poll
-  }
+  Serial.print("Processing device: ");
+  getBM6Data(config.devices[0] .c_str());
+  delay(1000); // Small delay between each device poll
+  Serial.print("Done");
+
   data->voltage = bm6_data.voltage;
   data->temperature = bm6_data.temperature;
   data->power = bm6_data.power;

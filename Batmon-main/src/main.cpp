@@ -4,7 +4,7 @@
 #include "rotaryencoder.h"
 
 /* ------------------------  PINS ------------------------ */
-#define POWER_OUT_PIN 39
+#define POWER_OUT_PIN 17
 
 /* ------------------------  globals ------------------------ */
 float voltage_current = 0.00;
@@ -45,7 +45,7 @@ void IRAM_ATTR timerISR()
     
     if(isr_sample_voltage_trigger == 20)
     {
-        sample_voltage();
+        // sample_voltage();
         drawScreen_Voltage(&old_voltage, &voltage_current);
         isr_sample_voltage_trigger = 0;
     }
@@ -193,8 +193,10 @@ void setup() {
 
   timer = timerBegin(0,80,true);              // 1 MHz timer clock
   timerAttachInterrupt(timer, &timerISR,true);
-  timerAlarmWrite(timer, 1000000, true);      // 100ms periodic interrupt
+  timerAlarmWrite(timer, 100000, true);      // 100ms periodic interrupt
   timerAlarmEnable(timer);
+
+  Serial.println("Setup done");
 }
 
 
@@ -214,4 +216,6 @@ void loop() {
     }
   }
   eval_power_output();
+  sample_voltage();
+  delay(5000);
 }
