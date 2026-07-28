@@ -226,7 +226,7 @@ void sample_voltage()
 {
   struct BM6Data data;
   get_batmon_data(&data);
-  voltage_current = data.voltage;
+  voltage_current = data.voltage/100.0;
 }
 
 void eval_power_output()

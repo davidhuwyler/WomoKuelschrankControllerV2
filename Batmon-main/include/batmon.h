@@ -1,9 +1,8 @@
 #pragma once
 
 struct BM6Data {
-  float voltage;
-  int temperature;
-  int power;
+  uint16_t voltage;
+  int16_t temperature;
 };
 
 void batmon_init();

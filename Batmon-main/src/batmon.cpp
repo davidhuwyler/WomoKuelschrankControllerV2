@@ -12,7 +12,7 @@ const uint8_t key[16] = {108, 101, 97, 103, 101, 110, 100, 255, 254, 48, 49, 48,
 // Precomputed encrypted command
 uint8_t encryptedCommandBytes[16];
 
-BM6Data bm6_data = {0, 0, 0};
+BM6Data bm6_data = {0, 0};
 
 
 struct Config {  
@@ -26,24 +26,24 @@ Config config = {
 
 //------------Ringbuffer-----------------
 
-
-#define BUFFER_SIZE 1024
+// 16k float ring buffer -> Store 9h of samples (0.5Hz sampling rate)
+#define BUFFER_SIZE 1024*16
 #define BUFFER_MASK (BUFFER_SIZE - 1)
 
-float ringBuffer[BUFFER_SIZE];
+BM6Data ringBuffer[BUFFER_SIZE];
 uint16_t writeIndex = 0;
 bool bufferFull = false;
 
-void batmonRing_addValue(float value)
+void batmonRing_addValue(BM6Data* value)
 {
-    ringBuffer[writeIndex] = value;
+    ringBuffer[writeIndex] = *value;
     writeIndex = (writeIndex + 1) & BUFFER_MASK;
 
     if (writeIndex == 0)
         bufferFull = true;
 }
 
-float batmonRing_getValue(uint16_t i)
+BM6Data* batmonRing_getValue(uint16_t i)
 {
     uint16_t index;
 
@@ -52,7 +52,7 @@ float batmonRing_getValue(uint16_t i)
     else
         index = i;
 
-    return ringBuffer[index];
+    return &ringBuffer[index];
 }
 
 uint32_t batmonRing_getFillLevel()
@@ -123,9 +123,8 @@ void notificationHandler(BLERemoteCharacteristic* characteristic, uint8_t* data,
   Serial.println("Message received: " + message);
 
   if (message.startsWith("d15507")) {
-    bm6_data.voltage = strtol(message.substring(15, 18).c_str(), NULL, 16) / 100.0;
-    bm6_data.temperature = strtol(message.substring(8, 10).c_str(), NULL, 16);
-    bm6_data.power = strtol(message.substring(12, 14).c_str(), NULL, 16);
+    bm6_data.voltage = (uint16_t)strtol(message.substring(15, 18).c_str(), NULL, 16);
+    bm6_data.temperature = (int16_t)strtol(message.substring(8, 10).c_str(), NULL, 16);
   }    
 }
 
@@ -134,7 +133,6 @@ void getBM6Data(const char* address) {
   Serial.println("Starting BM6 data retrieval...");
   bm6_data.voltage = 0;
   bm6_data.temperature = 0;
-  bm6_data.power = 0;
 
   BLEClient* client = nullptr;
   try {
@@ -194,8 +192,6 @@ void getBM6Data(const char* address) {
     Serial.println(bm6_data.voltage);
     Serial.print("Temp: ");
     Serial.println(bm6_data.temperature);
-    Serial.print("Power: ");
-    Serial.println(bm6_data.power);
 
     // Unsubscribe from notifications before disconnecting
     if(charFF4->canNotify()) {
@@ -235,9 +231,8 @@ void get_batmon_data(struct BM6Data* data)
   getBM6Data(config.devices[0] .c_str());
   data->voltage = bm6_data.voltage;
   data->temperature = bm6_data.temperature;
-  data->power = bm6_data.power;
 
-  batmonRing_addValue(data->voltage); // Add the voltage to the ring buffer
+  batmonRing_addValue(data); // Add the data to the ring buffer
 }
 
 void batmon_init() {
