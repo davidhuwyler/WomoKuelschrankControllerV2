@@ -23,6 +23,49 @@ Config config = {
     {"C8:17:F5:29:36:77"}  // Use BLE Scanner app to find the mac of the BM6 device
 };
 
+
+//------------Ringbuffer-----------------
+
+
+#define BUFFER_SIZE 1024
+#define BUFFER_MASK (BUFFER_SIZE - 1)
+
+float ringBuffer[BUFFER_SIZE];
+uint16_t writeIndex = 0;
+bool bufferFull = false;
+
+void batmonRing_addValue(float value)
+{
+    ringBuffer[writeIndex] = value;
+    writeIndex = (writeIndex + 1) & BUFFER_MASK;
+
+    if (writeIndex == 0)
+        bufferFull = true;
+}
+
+float batmonRing_getValue(uint16_t i)
+{
+    uint16_t index;
+
+    if (bufferFull)
+        index = (writeIndex + i) & BUFFER_MASK;
+    else
+        index = i;
+
+    return ringBuffer[index];
+}
+
+uint32_t batmonRing_getFillLevel()
+{
+    if (bufferFull)
+        return BUFFER_SIZE;
+    else
+        return writeIndex;
+}
+
+//------------https://github.com/Goodwillson/Batmon----------------
+
+
 // Function to decrypt data using AES
 String decrypt(uint8_t* crypted, size_t length) {
     if (length != 16) {
@@ -112,7 +155,7 @@ void getBM6Data(const char* address) {
     if (service == nullptr) {
       Serial.println("Failed to find the service with UUID FFF0.");
       client->disconnect();
-      delay(1000);      
+      vTaskDelay(pdMS_TO_TICKS(1000));
       return;
     }
 
@@ -121,7 +164,7 @@ void getBM6Data(const char* address) {
     if (charFF3 == nullptr || charFF4 == nullptr) {
       Serial.println("Failed to find the characteristics with UUID FFF3 or FFF4.");
       client->disconnect();
-      delay(1000);      
+      vTaskDelay(pdMS_TO_TICKS(1000));
       return;
     }
 
@@ -141,10 +184,10 @@ void getBM6Data(const char* address) {
       if (millis() - startTime > 10000) {
         Serial.println("Timeout: No data received.");
         client->disconnect();
-        delay(1000);        
+        vTaskDelay(pdMS_TO_TICKS(1000));
         return;
       }
-      delay(100);
+      vTaskDelay(pdMS_TO_TICKS(100));
     }
     Serial.println("Data received.");
     Serial.print("Voltage: ");
@@ -158,7 +201,7 @@ void getBM6Data(const char* address) {
     if(charFF4->canNotify()) {
         charFF4->unsubscribe();
         Serial.println("Unsubscribed from notifications.");
-        delay(1000); // Wait for the unsubscribe operation to complete
+        vTaskDelay(pdMS_TO_TICKS(600)); // Wait for the unsubscribe operation to complete
     }
 
   } catch (const std::exception& e) {
@@ -166,13 +209,13 @@ void getBM6Data(const char* address) {
     Serial.println(e.what());
     if (client) {
       client->disconnect();
-      delay(1000);
+      vTaskDelay(pdMS_TO_TICKS(1000));
     }
   } catch (...) {
     Serial.println("An unknown error occurred.");
     if (client) {
       client->disconnect();
-      delay(1000);
+      vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
 
@@ -182,7 +225,7 @@ void getBM6Data(const char* address) {
     }    
     client = nullptr;
     Serial.println("Disconnected from BLE device.");    
-    delay(2000); // Wait for the deinit and disconnect to complete
+    vTaskDelay(pdMS_TO_TICKS(600)); // Wait for the deinit and disconnect to complete
   } 
 }
 
@@ -190,12 +233,11 @@ void get_batmon_data(struct BM6Data* data)
 {
   Serial.print("Processing device: ");
   getBM6Data(config.devices[0] .c_str());
-  delay(1000); // Small delay between each device poll
-  Serial.print("Done");
-
   data->voltage = bm6_data.voltage;
   data->temperature = bm6_data.temperature;
   data->power = bm6_data.power;
+
+  batmonRing_addValue(data->voltage); // Add the voltage to the ring buffer
 }
 
 void batmon_init() {

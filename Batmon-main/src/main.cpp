@@ -120,10 +120,14 @@ void lcdTask(void *parameter)
 
 void bleTask(void *parameter)
 {
+    const TickType_t period = pdMS_TO_TICKS(2000);
+    TickType_t lastWakeTime = xTaskGetTickCount();
+
     while (true)
     {
+
       sample_voltage();
-      vTaskDelay(pdMS_TO_TICKS(2000));
+      vTaskDelayUntil(&lastWakeTime, period);
     }
 }
 
