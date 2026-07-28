@@ -218,7 +218,11 @@ void draw_voltage_graph_display(bool doInitScreen)
     uint16_t x_range=210;
     uint16_t y_range=114;
     uint32_t fillLevel = batmonRing_getFillLevel();
-    static BM6Data* data_point=batmonRing_getValue(fillLevel);
+    uint32_t current_intex;
+    if(fillLevel)
+        current_intex=fillLevel-1;
+    Serial.println("Debug "+String(fillLevel));
+    static BM6Data* data_point=batmonRing_getValue(current_intex);
     static BM6Data* old_data_point;
 
     if(doInitScreen)
@@ -229,14 +233,16 @@ void draw_voltage_graph_display(bool doInitScreen)
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
         tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
         tft.setTextFont(TEXT_FONT_LABEL);
-        tft.drawString("Voltage:", CURRENT_TEXT_X, CURRENT_TEXT_Y);
-        tft.drawString("Temperature:", DISCONNECT_TEXT_X, DISCONNECT_TEXT_Y);
+        tft.drawString("Voltage:", CURRENT_TEXT_X, 1);
+        tft.drawString("Temperature:", DISCONNECT_TEXT_X, 1);
 
+        tft.setTextColor(TFT_SKYBLUE, TFT_BLACK);
         tft.drawString("14V", 0, 18);
-        tft.drawString("40°", 0, 26);
-
         tft.drawString("10V", 0, 120);
-        tft.drawString("0°" , 0, 128);
+
+        tft.setTextColor(TFT_RED, TFT_BLACK);
+        tft.drawString("40", 0, 26);        
+        tft.drawString("0" , 0, 128);
 
         tft.drawLine(TIMER_HIGHLIGHT_FROM_X, TIMER_HIGHLIGHT_FROM_Y, STATE_HIGHLIGHT_TO_X, STATE_HIGHLIGHT_TO_Y, TFT_WHITE);
         tft.drawLine(TIMER_HIGHLIGHT_FROM_X, TIMER_HIGHLIGHT_FROM_Y, TIMER_HIGHLIGHT_FROM_X, 20, TFT_WHITE);
@@ -249,15 +255,16 @@ void draw_voltage_graph_display(bool doInitScreen)
         tft.setTextColor(TFT_BLACK, TFT_BLACK);
         tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
         tft.setTextFont(TEXT_FONT_LABEL);
-        tft.drawString(String(old_data_point->voltage), CURRENT_TEXT_X+30, CURRENT_TEXT_Y);
-        tft.drawString(String(old_data_point->temperature), DISCONNECT_TEXT_X+30, DISCONNECT_TEXT_Y);
+        tft.drawString(String(old_data_point->voltage), CURRENT_TEXT_X+50, 1);
+        tft.drawString(String(old_data_point->temperature), DISCONNECT_TEXT_X+72, 1);
     }
 
+    Serial.println("Debug Voltage"+String(data_point->voltage));
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
     tft.setTextFont(TEXT_FONT_LABEL);
-    tft.drawString(String(data_point->voltage), CURRENT_TEXT_X+30, CURRENT_TEXT_Y);
-    tft.drawString(String(data_point->temperature), DISCONNECT_TEXT_X+30, DISCONNECT_TEXT_Y);
+    tft.drawString(String(data_point->voltage), CURRENT_TEXT_X+50, 1);
+    tft.drawString(String(data_point->temperature), DISCONNECT_TEXT_X+72, 1);
 
     if(fillLevel < x_range)
     {
@@ -273,8 +280,11 @@ void draw_voltage_graph_display(bool doInitScreen)
         tft.drawLine(x_pos, y_pos, x_pos+x_range, y_pos+y_range,TFT_BLACK);
         data_point=batmonRing_getValue((uint16_t)(x_delta*i));
 
+        Serial.println("Debug Voltage"+String(i) +"  " +String(data_point->voltage));
+
         uint16_t y_voltage = y_pos + ((y_range * (data_point->voltage - 1000)) / 1400);
         uint16_t y_temp =    y_pos + ((y_range * data_point->temperature) / 40);
+        Serial.println("Debug Voltage "+String(y_voltage) +"  " +String(y_temp));
         tft.drawPixel(x_pos,y_voltage,TFT_SKYBLUE);
         tft.drawPixel(x_pos,y_temp,TFT_RED); 
     }

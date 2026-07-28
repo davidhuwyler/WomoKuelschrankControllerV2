@@ -33,7 +33,7 @@ struct todoFlags {
 };
 struct todoFlags workTodo;
 
-enum enumScreenMode screenMode = SCREEN_MODE_OVERVIEW;
+enum enumScreenMode screenMode = SCREEN_MODE_VOLTAGE_GRAPH;
 
 TaskHandle_t lcdTaskHandle = NULL;
 TaskHandle_t bleTaskHandle = NULL;
@@ -120,12 +120,12 @@ void lcdTask(void *parameter)
 
 void bleTask(void *parameter)
 {
-    const TickType_t period = pdMS_TO_TICKS(2000);
+    const TickType_t period = pdMS_TO_TICKS(5000);
     TickType_t lastWakeTime = xTaskGetTickCount();
 
     while (true)
     {
-
+      Serial.println(millis());
       sample_voltage();
       vTaskDelayUntil(&lastWakeTime, period);
     }
@@ -283,15 +283,15 @@ void setup() {
 
 /* ------------------------  loop ------------------------ */
 void loop() {   
-  enum enumScreenMode oldScreenMode;
-  screenMode = getScreenMode();
+  static enum enumScreenMode oldScreenMode;
+  //screenMode = getScreenMode();
 
-  if(oldScreenMode == SCREEN_MODE_VOLTAGE_GRAPH && screenMode != SCREEN_MODE_VOLTAGE_GRAPH)
+  if(oldScreenMode == screenMode && screenMode != SCREEN_MODE_VOLTAGE_GRAPH)
   {
     draw_static_overview_display();
   }
 
-  if(oldScreenMode != SCREEN_MODE_VOLTAGE_GRAPH && screenMode == SCREEN_MODE_VOLTAGE_GRAPH)
+  if(oldScreenMode != screenMode && screenMode == SCREEN_MODE_VOLTAGE_GRAPH)
   {
     draw_voltage_graph_display(true);
   }
@@ -309,6 +309,7 @@ void loop() {
   else if(screenMode == SCREEN_MODE_VOLTAGE_GRAPH)
   {
     draw_voltage_graph_display(false);
+    delay(500);
   }
   eval_power_output();
 

@@ -26,8 +26,8 @@ Config config = {
 
 //------------Ringbuffer-----------------
 
-// 64k samples ring buffer -> Store 36h of samples (0.5Hz sampling rate)
-#define BUFFER_SIZE 1024*64
+// 64k samples ring buffer -> Store 22h of samples (0.2Hz sampling rate)
+#define BUFFER_SIZE 1024*16
 #define BUFFER_MASK (BUFFER_SIZE - 1)
 
 BM6Data* ringBuffer;
@@ -197,7 +197,7 @@ void getBM6Data(const char* address) {
     if(charFF4->canNotify()) {
         charFF4->unsubscribe();
         Serial.println("Unsubscribed from notifications.");
-        vTaskDelay(pdMS_TO_TICKS(600)); // Wait for the unsubscribe operation to complete
+        vTaskDelay(pdMS_TO_TICKS(500)); // Wait for the unsubscribe operation to complete
     }
 
   } catch (const std::exception& e) {
@@ -221,7 +221,7 @@ void getBM6Data(const char* address) {
     }    
     client = nullptr;
     Serial.println("Disconnected from BLE device.");    
-    vTaskDelay(pdMS_TO_TICKS(600)); // Wait for the deinit and disconnect to complete
+    vTaskDelay(pdMS_TO_TICKS(500)); // Wait for the deinit and disconnect to complete
   } 
 }
 
@@ -238,5 +238,14 @@ void get_batmon_data(struct BM6Data* data)
 void batmon_init() {
     NimBLEDevice::init("");  
     precomputeEncryptedCommand(); // Precompute the encrypted command 
-    ringBuffer = (BM6Data*)calloc(BUFFER_SIZE, sizeof(BM6Data));
+
+    Serial.printf("Free heap: %u bytes\n", ESP.getFreeHeap());
+    Serial.printf("Min free heap: %u bytes\n", ESP.getMinFreeHeap());
+    Serial.printf("Largest free block: %u bytes\n", ESP.getMaxAllocHeap());
+
+    ringBuffer = (struct BM6Data*)calloc(BUFFER_SIZE, sizeof(struct BM6Data));
+    if(ringBuffer == nullptr)
+    {
+      Serial.print("ERROR! Ringbuffer calloc failed!");
+    }
 }
