@@ -8,7 +8,7 @@ void drawScreen_Timer(int* old_time, int* timer_min, int* old_time_s, int* timer
 
 void draw_lcd_selector(bool* selector_on, int lcd_selected);
 void draw_static_overview_display();
-void draw_static_voltage_graph_display();
+void draw_voltage_graph_display(bool doInitScreen);
 
 void highlight_state();
 void highlight_state_off();

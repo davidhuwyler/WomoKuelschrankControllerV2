@@ -26,11 +26,11 @@ Config config = {
 
 //------------Ringbuffer-----------------
 
-// 16k float ring buffer -> Store 9h of samples (0.5Hz sampling rate)
-#define BUFFER_SIZE 1024*16
+// 64k samples ring buffer -> Store 36h of samples (0.5Hz sampling rate)
+#define BUFFER_SIZE 1024*64
 #define BUFFER_MASK (BUFFER_SIZE - 1)
 
-BM6Data ringBuffer[BUFFER_SIZE];
+BM6Data* ringBuffer;
 uint16_t writeIndex = 0;
 bool bufferFull = false;
 
@@ -238,4 +238,5 @@ void get_batmon_data(struct BM6Data* data)
 void batmon_init() {
     NimBLEDevice::init("");  
     precomputeEncryptedCommand(); // Precompute the encrypted command 
+    ringBuffer = (BM6Data*)calloc(BUFFER_SIZE, sizeof(BM6Data));
 }

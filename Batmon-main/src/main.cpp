@@ -293,7 +293,7 @@ void loop() {
 
   if(oldScreenMode != SCREEN_MODE_VOLTAGE_GRAPH && screenMode == SCREEN_MODE_VOLTAGE_GRAPH)
   {
-    draw_static_voltage_graph_display();
+    draw_voltage_graph_display(true);
   }
   
   if(screenMode == SCREEN_MODE_SELECTED_VALUE) {
@@ -305,6 +305,10 @@ void loop() {
     {
       lcd_selected = getEncoderValue();
     }
+  }
+  else if(screenMode == SCREEN_MODE_VOLTAGE_GRAPH)
+  {
+    draw_voltage_graph_display(false);
   }
   eval_power_output();
 
