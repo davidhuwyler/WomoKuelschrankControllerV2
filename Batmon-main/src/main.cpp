@@ -9,7 +9,6 @@
 /* ------------------------  globals ------------------------ */
 float voltage_current = 0.00;
 float voltage_disconnect = 12.20;
-bool lcd_change_val_mode = false;
 bool state = false;
 
 bool timer_is_used = false;
@@ -34,6 +33,7 @@ struct todoFlags {
 };
 struct todoFlags workTodo;
 
+enum enumScreenMode screenMode = SCREEN_MODE_OVERVIEW;
 
 TaskHandle_t lcdTaskHandle = NULL;
 TaskHandle_t bleTaskHandle = NULL;
@@ -49,7 +49,7 @@ int isr_count_seconds_trigger = 0;
 hw_timer_t *timer = nullptr;
 void IRAM_ATTR timerISR()
 {
-  if(lcd_change_val_mode==false)
+  if(screenMode == SCREEN_MODE_OVERVIEW)
   {
     if (xSemaphoreTake(workTodo.mutex, portMAX_DELAY))
     {
@@ -141,7 +141,7 @@ void set_state_value()
   highlight_disconnect_off();
   highlight_timer_off();
   setEncoderRange(0,0,1);
-  while(lcd_change_val_mode == true)
+  while(screenMode == SCREEN_MODE_SELECTED_VALUE)
   {
     if(getEncoderValue()==0)
     {
@@ -161,7 +161,7 @@ void set_timer_value()
   highlight_disconnect_off();
   highlight_timer();
   setEncoderRange(timer_min,0,1440);
-  while(lcd_change_val_mode == true)
+  while(screenMode == SCREEN_MODE_SELECTED_VALUE)
   {
     timer_min = getEncoderValue();
     drawScreen_Timer(&old_time, &timer_min, &old_time_s, &timer_seconds);
@@ -178,7 +178,7 @@ void set_disconnect_value()
   highlight_disconnect();
   highlight_timer_off();
   setEncoderRange((int)(voltage_disconnect*100),1190,1300);
-  while(lcd_change_val_mode == true)
+  while(screenMode == SCREEN_MODE_SELECTED_VALUE)
   {
     voltage_disconnect = (getEncoderValue())/100;
     drawScreen_Disconnect(&old_voltage_disconnect, &voltage_disconnect);
@@ -279,11 +279,23 @@ void setup() {
 
 /* ------------------------  loop ------------------------ */
 void loop() {   
-  lcd_change_val_mode = getEncoderButtonToggleState();
-  if(lcd_change_val_mode == true) {
+  enum enumScreenMode oldScreenMode;
+  screenMode = getScreenMode();
+
+  if(oldScreenMode == SCREEN_MODE_VOLTAGE_GRAPH && screenMode != SCREEN_MODE_VOLTAGE_GRAPH)
+  {
+    draw_static_overview_display();
+  }
+
+  if(oldScreenMode != SCREEN_MODE_VOLTAGE_GRAPH && screenMode == SCREEN_MODE_VOLTAGE_GRAPH)
+  {
+    draw_static_voltage_graph_display();
+  }
+  
+  if(screenMode == SCREEN_MODE_SELECTED_VALUE) {
     change_lcd_val();
   }
-  else
+  else if(screenMode == SCREEN_MODE_OVERVIEW)
   {
     if(lcd_selected != getEncoderValue())
     {
@@ -291,4 +303,6 @@ void loop() {
     }
   }
   eval_power_output();
+
+  oldScreenMode = screenMode;
 }

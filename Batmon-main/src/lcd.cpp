@@ -183,9 +183,11 @@ void highlight_timer_off()
 }
 
 
-void draw_static_display()
+void draw_static_overview_display()
 {
-        // ---------- upper left ----------
+    tft.setRotation(1); // Set the rotation of the display (0-3)
+    tft.fillScreen(TFT_BLACK); // Clear the screen with black color
+
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
     tft.setTextFont(TEXT_FONT_LABEL);
@@ -195,9 +197,18 @@ void draw_static_display()
     tft.drawString("State", STATE_TEXT_X, STATE_TEXT_Y);
 }
 
+void draw_static_voltage_graph_display()
+{
+    tft.setRotation(1); // Set the rotation of the display (0-3)
+    tft.fillScreen(TFT_BLACK); // Clear the screen with black color
+
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
+    tft.setTextFont(TEXT_FONT_LABEL);
+    tft.drawString("VoltageGraph Display", CURRENT_TEXT_X, CURRENT_TEXT_Y);
+}
+
 void lcd_init() {
   tft.init();
-  tft.setRotation(1); // Set the rotation of the display (0-3)
-  tft.fillScreen(TFT_BLACK); // Clear the screen with black color
-  draw_static_display();
+  draw_static_overview_display();
 }

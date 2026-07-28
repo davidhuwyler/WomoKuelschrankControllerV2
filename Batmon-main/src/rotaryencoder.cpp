@@ -15,6 +15,9 @@ static uint32_t rotaryModuloVal=0xFFFFFFFF;
 static uint32_t rotaryMinVal = 0;
 static uint32_t rotaryMaxVal = 0xFFFFFFFF;
 
+unsigned long buttonPressedTime = 0;
+unsigned long buttonReleaseTime = 0;
+
 ESP32Encoder encoder;
 
 void setEncoderRange(uint32_t value, uint32_t min, uint32_t max) {
@@ -34,14 +37,29 @@ uint32_t getEncoderValue() {
     }
     return val;
 }
-bool getEncoderButtonToggleState() {
-    return encoderButtonToggle;
+enum enumScreenMode getScreenMode() {
+    if((buttonPressedTime - buttonReleaseTime) > 1000) {
+        buttonReleaseTime = 0;
+        buttonPressedTime = 0;
+        encoderButtonToggle = false;
+        return SCREEN_MODE_VOLTAGE_GRAPH;
+    } else {
+        return encoderButtonToggle ? SCREEN_MODE_SELECTED_VALUE : SCREEN_MODE_OVERVIEW;
+    }    
 }
 
 
-void IRAM_ATTR encoderButtonISR()
+void IRAM_ATTR encoderButtonPressedISR()
 {
     encoderButtonPressed = true;
+    buttonPressedTime = millis();
+    encoderButtonToggle = !encoderButtonToggle;
+}
+
+void IRAM_ATTR encoderButtonReleasedISR()
+{
+    encoderButtonPressed = false;
+    buttonReleaseTime = millis();
     encoderButtonToggle = !encoderButtonToggle;
 }
 
@@ -58,6 +76,11 @@ void rotaryencoder_init()
 
     attachInterrupt(
         digitalPinToInterrupt(ENCODER_BTN_PIN),
-        encoderButtonISR,
+        encoderButtonPressedISR,
         FALLING);
+
+    attachInterrupt(
+        digitalPinToInterrupt(ENCODER_BTN_PIN),
+        encoderButtonReleasedISR,
+        RISING);
 }
