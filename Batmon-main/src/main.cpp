@@ -288,6 +288,7 @@ void loop() {
   if(oldScreenMode == screenMode && screenMode != SCREEN_MODE_VOLTAGE_GRAPH)
   {
     draw_static_overview_display();
+    drawScreen();
   }
 
   if(oldScreenMode != screenMode && screenMode == SCREEN_MODE_VOLTAGE_GRAPH)
