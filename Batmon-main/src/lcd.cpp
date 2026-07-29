@@ -211,6 +211,8 @@ void draw_static_overview_display()
 
 void draw_voltage_graph_display(bool doInitScreen)
 {
+    static BM6Data* data_point;
+    static BM6Data* old_data_point;
     // Pixel Range X= 225 - 15 = 210
     // Pixel Range Y= 134 - 20 = 114
     // Voltage Range = 10V - 14V
@@ -220,10 +222,10 @@ void draw_voltage_graph_display(bool doInitScreen)
     uint32_t fillLevel = batmonRing_getFillLevel();
     uint32_t current_intex;
     if(fillLevel)
+    {
         current_intex=fillLevel-1;
-    Serial.println("Debug "+String(fillLevel));
-    static BM6Data* data_point=batmonRing_getValue(current_intex);
-    static BM6Data* old_data_point;
+    }
+    data_point=batmonRing_getValue(current_intex);
 
     if(doInitScreen)
     {
@@ -256,15 +258,14 @@ void draw_voltage_graph_display(bool doInitScreen)
         tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
         tft.setTextFont(TEXT_FONT_LABEL);
         tft.drawString(String(old_data_point->voltage), CURRENT_TEXT_X+50, 1);
-        tft.drawString(String(old_data_point->temperature), DISCONNECT_TEXT_X+72, 1);
+        tft.drawString(String(old_data_point->temperature), DISCONNECT_TEXT_X+73, 1);
     }
 
-    Serial.println("Debug Voltage"+String(data_point->voltage));
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
     tft.setTextFont(TEXT_FONT_LABEL);
     tft.drawString(String(data_point->voltage), CURRENT_TEXT_X+50, 1);
-    tft.drawString(String(data_point->temperature), DISCONNECT_TEXT_X+72, 1);
+    tft.drawString(String(data_point->temperature), DISCONNECT_TEXT_X+73, 1);
 
     if(fillLevel < x_range)
     {
@@ -279,12 +280,8 @@ void draw_voltage_graph_display(bool doInitScreen)
         uint16_t y_pos=134+1;
         tft.drawLine(x_pos, y_pos, x_pos+x_range, y_pos+y_range,TFT_BLACK);
         data_point=batmonRing_getValue((uint16_t)(x_delta*i));
-
-        Serial.println("Debug Voltage"+String(i) +"  " +String(data_point->voltage));
-
-        uint16_t y_voltage = y_pos + ((y_range * (data_point->voltage - 1000)) / 1400);
-        uint16_t y_temp =    y_pos + ((y_range * data_point->temperature) / 40);
-        Serial.println("Debug Voltage "+String(y_voltage) +"  " +String(y_temp));
+        uint16_t y_voltage = y_pos - ((y_range * (data_point->voltage - 1000)) / 1400);
+        uint16_t y_temp =    y_pos - ((y_range * data_point->temperature) / 40);
         tft.drawPixel(x_pos,y_voltage,TFT_SKYBLUE);
         tft.drawPixel(x_pos,y_temp,TFT_RED); 
     }

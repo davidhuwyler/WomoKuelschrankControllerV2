@@ -125,7 +125,6 @@ void bleTask(void *parameter)
 
     while (true)
     {
-      Serial.println(millis());
       sample_voltage();
       vTaskDelayUntil(&lastWakeTime, period);
     }
