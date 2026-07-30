@@ -280,7 +280,7 @@ void draw_voltage_graph_display(bool doInitScreen)
         uint16_t y_pos=134+1;
         tft.drawLine(x_pos, y_pos, x_pos+x_range, y_pos+y_range,TFT_BLACK);
         data_point=batmonRing_getValue((uint16_t)(x_delta*i));
-        uint16_t y_voltage = y_pos - ((y_range * (data_point->voltage - 1000)) / 1400);
+        uint16_t y_voltage = y_pos - ((y_range * (data_point->voltage - 1000)) / 400);
         uint16_t y_temp =    y_pos - ((y_range * data_point->temperature) / 40);
         tft.drawPixel(x_pos,y_voltage,TFT_SKYBLUE);
         tft.drawPixel(x_pos,y_temp,TFT_RED); 
