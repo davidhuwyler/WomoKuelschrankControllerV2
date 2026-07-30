@@ -124,7 +124,7 @@ void notificationHandler(BLERemoteCharacteristic* characteristic, uint8_t* data,
 
   if (message.startsWith("d15507")) {
     bm6_data.voltage = (uint16_t)strtol(message.substring(15, 18).c_str(), NULL, 16);
-    bm6_data.temperature = (int16_t)strtol(message.substring(8, 10).c_str(), NULL, 16);
+    bm6_data.temperature = (int16_t)strtol(message.substring(8, 10).c_str(), NULL, 16) -3; // -3 is a dave calibration
   }    
 }
 
