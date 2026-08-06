@@ -281,10 +281,10 @@ void draw_voltage_graph_display(bool doInitScreen)
         uint16_t x_pos=15+1+i;
         uint16_t y_pos=134+1;
         tft.drawLine(x_pos, y_pos, x_pos+x_range, y_pos+y_range,TFT_BLACK);
-        tft.drawPixel(x_pos,20,TFT_DARKGREY);
-        tft.drawPixel(x_pos,49,TFT_DARKGREY);
-        tft.drawPixel(x_pos,77,TFT_DARKGREY);
-        tft.drawPixel(x_pos,106,TFT_DARKGREY);
+        tft.drawPixel(x_pos,20+1,TFT_DARKGREY);
+        tft.drawPixel(x_pos,49+1,TFT_DARKGREY);
+        tft.drawPixel(x_pos,77+1,TFT_DARKGREY);
+        tft.drawPixel(x_pos,106+1,TFT_DARKGREY);
 
         data_point=batmonRing_getValue((uint16_t)(x_delta*(float)i));
         uint16_t y_voltage = y_pos - ((y_range * (data_point->voltage - 1000)) / 400);
