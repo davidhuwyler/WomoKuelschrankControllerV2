@@ -227,6 +227,15 @@ void draw_voltage_graph_display(bool doInitScreen)
     }
     data_point=batmonRing_getValue(current_intex);
 
+    if(old_data_point != nullptr)
+    {
+        tft.setTextColor(TFT_BLACK, TFT_BLACK);
+        tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
+        tft.setTextFont(TEXT_FONT_LABEL);
+        tft.drawString(String(old_data_point->voltage), CURRENT_TEXT_X+50, 1);
+        tft.drawString(String(old_data_point->temperature), DISCONNECT_TEXT_X+73, 1);
+    }
+
     if(doInitScreen)
     {
         tft.setRotation(1); // Set the rotation of the display (0-3)
@@ -239,26 +248,19 @@ void draw_voltage_graph_display(bool doInitScreen)
         tft.drawString("Temperature:", DISCONNECT_TEXT_X, 1);
 
         tft.setTextColor(TFT_SKYBLUE, TFT_BLACK);
-        tft.drawString("14V", 0, 18);
+        tft.drawString("14V", 0, 13);
+        tft.drawString("13V", 0, 70);
         tft.drawString("10V", 0, 120);
 
         tft.setTextColor(TFT_RED, TFT_BLACK);
-        tft.drawString("40", 0, 26);        
+        tft.drawString("40", 0, 21);     
+        tft.drawString("20", 0, 78);    
         tft.drawString("0" , 0, 128);
 
-        tft.drawLine(TIMER_HIGHLIGHT_FROM_X, TIMER_HIGHLIGHT_FROM_Y, STATE_HIGHLIGHT_TO_X, STATE_HIGHLIGHT_TO_Y, TFT_WHITE);
-        tft.drawLine(TIMER_HIGHLIGHT_FROM_X, TIMER_HIGHLIGHT_FROM_Y, TIMER_HIGHLIGHT_FROM_X, 20, TFT_WHITE);
+        tft.drawLine(15, 134, 225, 134, TFT_WHITE);
+        tft.drawLine(15, 134, 15, 20, TFT_WHITE);
 
         old_data_point = nullptr;
-    }
-
-    if(old_data_point != nullptr)
-    {
-        tft.setTextColor(TFT_BLACK, TFT_BLACK);
-        tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
-        tft.setTextFont(TEXT_FONT_LABEL);
-        tft.drawString(String(old_data_point->voltage), CURRENT_TEXT_X+50, 1);
-        tft.drawString(String(old_data_point->temperature), DISCONNECT_TEXT_X+73, 1);
     }
 
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
@@ -279,7 +281,12 @@ void draw_voltage_graph_display(bool doInitScreen)
         uint16_t x_pos=15+1+i;
         uint16_t y_pos=134+1;
         tft.drawLine(x_pos, y_pos, x_pos+x_range, y_pos+y_range,TFT_BLACK);
-        data_point=batmonRing_getValue((uint16_t)(x_delta*i));
+        tft.drawPixel(x_pos,20,TFT_DARKGREY);
+        tft.drawPixel(x_pos,49,TFT_DARKGREY);
+        tft.drawPixel(x_pos,77,TFT_DARKGREY);
+        tft.drawPixel(x_pos,106,TFT_DARKGREY);
+
+        data_point=batmonRing_getValue((uint16_t)(x_delta*(float)i));
         uint16_t y_voltage = y_pos - ((y_range * (data_point->voltage - 1000)) / 400);
         uint16_t y_temp =    y_pos - ((y_range * data_point->temperature) / 40);
         tft.drawPixel(x_pos,y_voltage,TFT_SKYBLUE);
