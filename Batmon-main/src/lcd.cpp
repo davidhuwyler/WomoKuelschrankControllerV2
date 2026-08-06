@@ -249,7 +249,7 @@ void draw_voltage_graph_display(bool doInitScreen)
 
         tft.setTextColor(TFT_SKYBLUE, TFT_BLACK);
         tft.drawString("14V", 0, 13);
-        tft.drawString("13V", 0, 70);
+        tft.drawString("12V", 0, 70);
         tft.drawString("10V", 0, 120);
 
         tft.setTextColor(TFT_RED, TFT_BLACK);
