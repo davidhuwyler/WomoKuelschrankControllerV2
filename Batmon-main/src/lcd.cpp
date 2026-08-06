@@ -211,8 +211,8 @@ void draw_static_overview_display()
 
 void draw_voltage_graph_display(bool doInitScreen)
 {
-    static BM6Data* data_point;
-    static BM6Data* old_data_point;
+    static BM6Data* data_point = nullptr;
+    static BM6Data* old_data_point = nullptr;
     // Pixel Range X= 225 - 15 = 210
     // Pixel Range Y= 134 - 20 = 114
     // Voltage Range = 10V - 14V
@@ -245,7 +245,9 @@ void draw_voltage_graph_display(bool doInitScreen)
         tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
         tft.setTextFont(TEXT_FONT_LABEL);
         tft.drawString("Voltage:", CURRENT_TEXT_X, 1);
-        tft.drawString("Temperature:", DISCONNECT_TEXT_X, 1);
+        tft.drawString("Temperature:", 120, 1);
+        tft.drawString("FS: ", 120, 11);
+        tft.drawString("T: ", 120+60,11);
 
         tft.setTextColor(TFT_SKYBLUE, TFT_BLACK);
         tft.drawString("14V", 0, 13);
@@ -263,16 +265,23 @@ void draw_voltage_graph_display(bool doInitScreen)
         old_data_point = nullptr;
     }
 
+    if (current_intex == 0) {
+        return;
+    }
+
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
     tft.setTextFont(TEXT_FONT_LABEL);
     tft.drawString(String(data_point->voltage), CURRENT_TEXT_X+50, 1);
-    tft.drawString(String(data_point->temperature), DISCONNECT_TEXT_X+73, 1);
+    tft.drawString(String(data_point->temperature), 120+73, 1);
+    tft.drawString(String(fillLevel*5), 120+73, 11);
 
     if(fillLevel < x_range)
     {
         fillLevel=x_range;
     } 
+
+    tft.drawString(String(fillLevel*5), 120+17, 11);
 
     float x_delta=x_range/((float)fillLevel);
 
