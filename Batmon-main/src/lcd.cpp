@@ -283,7 +283,9 @@ void draw_voltage_graph_display(bool doInitScreen)
 
     tft.drawString(String(fillLevel*5), 120+17, 11);
 
-    float x_delta=x_range/((float)fillLevel);
+    float x_delta=((float)fillLevel)/x_range;
+    Serial.println("fillLevel: "+String(fillLevel));
+    Serial.println("x_delta: "+String(x_delta));
 
     for(int i=0; i<x_range; i++)
     {
@@ -296,6 +298,7 @@ void draw_voltage_graph_display(bool doInitScreen)
         tft.drawPixel(x_pos,106+1,TFT_DARKGREY);
 
         data_point=batmonRing_getValue((uint16_t)(x_delta*(float)i));
+        Serial.println("data_point ["+String((uint16_t)(x_delta*(float)i))+"]: "+String(data_point->voltage)+", "+String(data_point->temperature));
         uint16_t y_voltage = y_pos - ((y_range * (data_point->voltage - 1000)) / 400);
         uint16_t y_temp =    y_pos - ((y_range * data_point->temperature) / 40);
         tft.drawPixel(x_pos,y_voltage,TFT_SKYBLUE);

@@ -248,4 +248,15 @@ void batmon_init() {
     {
       Serial.print("ERROR! Ringbuffer calloc failed!");
     }
+
+/*
+    Serial.print("DEBUG! Add 400 elements to ringbuffer");
+    for(int i=0; i<400; i++)
+    {
+      struct BM6Data data;
+      data.voltage = i*10+1000;
+      data.temperature = i%40;
+      batmonRing_addValue(&data);
+    }
+*/
 }
