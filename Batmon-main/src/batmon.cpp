@@ -128,6 +128,7 @@ void notificationHandler(BLERemoteCharacteristic* characteristic, uint8_t* data,
   }    
 }
 
+/* Connect, get one datapoint and disconnect... */
 void getBM6Data(const char* address) {
   
   Serial.println("Starting BM6 data retrieval...");
@@ -225,12 +226,109 @@ void getBM6Data(const char* address) {
   } 
 }
 
+void initBM6(const char* address) {
+  
+  Serial.println("Starting BM6 init...");
+  bm6_data.voltage = 0;
+  bm6_data.temperature = 0;
+
+  BLEClient* client = nullptr;
+  try {
+    client = BLEDevice::createClient();
+    BLEAddress bleAddress(address);
+
+    Serial.print("Connecting to BLE device at address: ");
+    Serial.println(address);
+
+    if (!client->connect(bleAddress)) {
+      Serial.println("Failed to connect to the BLE device.");      
+      return;
+    }
+
+    Serial.println("Connected to BLE device.");
+
+    NimBLERemoteService* service = client->getService("FFF0");
+    if (service == nullptr) {
+      Serial.println("Failed to find the service with UUID FFF0.");
+      client->disconnect();
+      vTaskDelay(pdMS_TO_TICKS(1000));
+      return;
+    }
+
+    NimBLERemoteCharacteristic* charFF3 = service->getCharacteristic("FFF3");
+    NimBLERemoteCharacteristic* charFF4 = service->getCharacteristic("FFF4");
+    if (charFF3 == nullptr || charFF4 == nullptr) {
+      Serial.println("Failed to find the characteristics with UUID FFF3 or FFF4.");
+      client->disconnect();
+      vTaskDelay(pdMS_TO_TICKS(1000));
+      return;
+    }
+
+    // Write the precomputed encrypted command to the characteristic
+    charFF3->writeValue(encryptedCommandBytes, sizeof(encryptedCommandBytes), true);
+    Serial.println("Sent encrypted command to start sending notifications.");
+
+    // Subscribe to notifications
+    if (charFF4->canNotify()) {
+        charFF4->subscribe(true, notificationHandler);
+        Serial.println("Subscribed to notifications.");
+    }
+
+    // Wait for data
+    unsigned long startTime = millis();
+    while (bm6_data.voltage == 0 && bm6_data.temperature == 0) {
+      if (millis() - startTime > 10000) {
+        Serial.println("Timeout: No data received.");
+        // client->disconnect();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        return;
+      }
+      vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    Serial.println("Data received.");
+    Serial.print("Voltage: ");
+    Serial.println(bm6_data.voltage);
+    Serial.print("Temp: ");
+    Serial.println(bm6_data.temperature);
+
+    // // Unsubscribe from notifications before disconnecting
+    // if(charFF4->canNotify()) {
+    //     charFF4->unsubscribe();
+    //     Serial.println("Unsubscribed from notifications.");
+    //     vTaskDelay(pdMS_TO_TICKS(500)); // Wait for the unsubscribe operation to complete
+    // }
+
+  } catch (const std::exception& e) {
+    Serial.print("Exception: ");
+    Serial.println(e.what());
+    if (client) {
+      client->disconnect();
+      vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+  } catch (...) {
+    Serial.println("An unknown error occurred.");
+    if (client) {
+      client->disconnect();
+      vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+  }
+
+  // if (client) {
+  //   if (client->isConnected()) {
+  //     client->disconnect();
+  //   }    
+  //   client = nullptr;
+  //   Serial.println("Disconnected from BLE device.");    
+  //   vTaskDelay(pdMS_TO_TICKS(500)); // Wait for the deinit and disconnect to complete
+  // } 
+}
+
 void get_batmon_data(struct BM6Data* data)
 {
   Serial.print("Processing device: ");
-  getBM6Data(config.devices[0] .c_str());
-  data->voltage = bm6_data.voltage;
-  data->temperature = bm6_data.temperature;
+  //getBM6Data(config.devices[0] .c_str());
+  data->voltage = bm6_data.voltage;          /* get the newest datapoint (sampling timepoint unknown)*/
+  data->temperature = bm6_data.temperature;  
 
   batmonRing_addValue(data); // Add the data to the ring buffer
 }
@@ -259,4 +357,6 @@ void batmon_init() {
       batmonRing_addValue(&data);
     }
 */
+
+  initBM6(config.devices[0] .c_str());
 }
