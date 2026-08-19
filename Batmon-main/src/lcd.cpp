@@ -291,7 +291,7 @@ void draw_voltage_graph_display(bool doInitScreen)
     {
         uint16_t x_pos=15+1+i;
         uint16_t y_pos=134+1;
-        tft.drawLine(x_pos, y_pos-2, x_pos, y_pos-y_range,TFT_BLACK);
+        tft.drawLine(x_pos, y_pos-2, x_pos, y_pos-y_range-2,TFT_BLACK);
         tft.drawPixel(x_pos,20+1,TFT_DARKGREY);
         tft.drawPixel(x_pos,49+1,TFT_DARKGREY);
         tft.drawPixel(x_pos,77+1,TFT_DARKGREY);
