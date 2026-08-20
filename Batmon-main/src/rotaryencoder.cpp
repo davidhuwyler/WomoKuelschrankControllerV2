@@ -17,6 +17,8 @@ static uint32_t rotaryMaxVal = 0xFFFFFFFF;
 
 unsigned long buttonPressedTime = 0;
 unsigned long buttonReleaseTime = 0;
+bool longpressDone = true;
+
 
 ESP32Encoder encoder;
 
@@ -37,13 +39,18 @@ uint32_t getEncoderValue() {
     }
     return val;
 }
-enum enumScreenMode getScreenMode() {
-    if((buttonPressedTime - buttonReleaseTime) > 1000) {
-        buttonReleaseTime = 0;
-        buttonPressedTime = 0;
+enum enumScreenMode getScreenMode(enum enumScreenMode currentScreenMode) {
+    if((buttonReleaseTime - buttonPressedTime) > 1000 && !longpressDone && encoderButtonPressed==false) {
         encoderButtonToggle = false;
-        return SCREEN_MODE_VOLTAGE_GRAPH;
-    } else {
+        longpressDone = true;
+        Serial.println("DEBUG long press" + String(buttonPressedTime) + ", " + String(buttonReleaseTime));
+        return currentScreenMode==SCREEN_MODE_OVERVIEW?SCREEN_MODE_VOLTAGE_GRAPH : currentScreenMode==SCREEN_MODE_VOLTAGE_GRAPH?SCREEN_MODE_OVERVIEW : currentScreenMode;
+    }
+    else 
+    {
+        if(currentScreenMode == SCREEN_MODE_VOLTAGE_GRAPH) {
+            return SCREEN_MODE_VOLTAGE_GRAPH;
+        }
         return encoderButtonToggle ? SCREEN_MODE_SELECTED_VALUE : SCREEN_MODE_OVERVIEW;
     }    
 }
@@ -51,25 +58,32 @@ enum enumScreenMode getScreenMode() {
 
 void IRAM_ATTR encoderButtonPressedISR()
 {
-    encoderButtonPressed = true;
-    buttonPressedTime = millis();
-    encoderButtonToggle = !encoderButtonToggle;
-}
-
-void IRAM_ATTR encoderButtonReleasedISR()
-{
-    encoderButtonPressed = false;
-    buttonReleaseTime = millis();
-    encoderButtonToggle = !encoderButtonToggle;
+    if(digitalRead(ENCODER_BTN_PIN) == LOW) {
+        if(encoderButtonPressed) {
+            // Button is already pressed, ignore this interrupt
+            return;
+        }
+        encoderButtonPressed = true;
+        buttonPressedTime = millis();
+    } else {
+        if(!encoderButtonPressed) {
+            // Button is already released, ignore this interrupt
+            return;
+        }
+        encoderButtonPressed = false;
+        buttonReleaseTime = millis();
+        encoderButtonToggle = !encoderButtonToggle;
+        longpressDone = false;
+    }
 }
 
 void rotaryencoder_init()
 {
-    // ---------------- Encoder ----------------
     ESP32Encoder::useInternalWeakPullResistors = puType::up;
 
     encoder.attachHalfQuad(ENCODER_A_PIN, ENCODER_B_PIN);
     encoder.setCount(0);
+    setEncoderRange(0, 0, 2); 
 
     // ---------------- Button ----------------
     pinMode(ENCODER_BTN_PIN, INPUT_PULLUP);
@@ -77,10 +91,5 @@ void rotaryencoder_init()
     attachInterrupt(
         digitalPinToInterrupt(ENCODER_BTN_PIN),
         encoderButtonPressedISR,
-        FALLING);
-
-    attachInterrupt(
-        digitalPinToInterrupt(ENCODER_BTN_PIN),
-        encoderButtonReleasedISR,
-        RISING);
+        CHANGE);
 }

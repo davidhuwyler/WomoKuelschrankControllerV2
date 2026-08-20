@@ -7,6 +7,6 @@ enum enumScreenMode {
 };
 
 void rotaryencoder_init();
-enum enumScreenMode getScreenMode();
+enum enumScreenMode getScreenMode(enum enumScreenMode currentScreenMode);
 uint32_t getEncoderValue();
 void setEncoderRange(uint32_t value, uint32_t min, uint32_t max);   

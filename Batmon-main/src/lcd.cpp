@@ -55,10 +55,10 @@ void drawScreen_State(bool* old_state, bool* state) {
         tft.setTextColor(TFT_BLACK, TFT_BLACK);
         tft.setTextDatum(TL_DATUM);
         tft.setTextFont(TEXT_FONT_VALUE);
-        tft.drawString(String(*old_state), STATE_VALUE_X, STATE_VALUE_Y);
+        tft.drawString(String(*old_state? "ON" : "OFF"), STATE_VALUE_X, STATE_VALUE_Y);
         
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString(String(*state), STATE_VALUE_X, STATE_VALUE_Y);
+        tft.drawString(String(*state? "ON" : "OFF" ), STATE_VALUE_X, STATE_VALUE_Y);
         
         *old_state = *state;
     }

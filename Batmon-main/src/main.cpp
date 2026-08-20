@@ -33,7 +33,8 @@ struct todoFlags {
 };
 struct todoFlags workTodo;
 
-enum enumScreenMode screenMode = SCREEN_MODE_VOLTAGE_GRAPH;
+enum enumScreenMode screenMode = SCREEN_MODE_OVERVIEW;
+enum enumScreenMode oldScreenMode = SCREEN_MODE_OVERVIEW;
 
 TaskHandle_t lcdTaskHandle = NULL;
 TaskHandle_t bleTaskHandle = NULL;
@@ -146,6 +147,7 @@ void set_state_value()
   setEncoderRange(0,0,1);
   while(screenMode == SCREEN_MODE_SELECTED_VALUE)
   {
+    screenMode = getScreenMode(oldScreenMode);
     if(getEncoderValue()==0)
     {
       state=false;
@@ -166,6 +168,7 @@ void set_timer_value()
   setEncoderRange(timer_min,0,1440);
   while(screenMode == SCREEN_MODE_SELECTED_VALUE)
   {
+    screenMode = getScreenMode(oldScreenMode);
     timer_min = getEncoderValue();
     drawScreen_Timer(&old_time, &timer_min, &old_time_s, &timer_seconds);
   }
@@ -183,7 +186,8 @@ void set_disconnect_value()
   setEncoderRange((int)(voltage_disconnect*100),1190,1300);
   while(screenMode == SCREEN_MODE_SELECTED_VALUE)
   {
-    voltage_disconnect = (getEncoderValue())/100;
+    screenMode = getScreenMode(oldScreenMode);
+    voltage_disconnect = ((float)getEncoderValue())/100;
     drawScreen_Disconnect(&old_voltage_disconnect, &voltage_disconnect);
   }
 }
@@ -238,7 +242,7 @@ void eval_power_output()
     {
       digitalWrite(POWER_OUT_PIN, HIGH);
     }
-    else if(state==false)
+    else if(state==true)
     {
       state=false;
       drawScreen_State(&old_state, &state);
@@ -282,17 +286,18 @@ void setup() {
 
 /* ------------------------  loop ------------------------ */
 void loop() {   
-  static enum enumScreenMode oldScreenMode;
-  //screenMode = getScreenMode();
+  screenMode = getScreenMode(oldScreenMode);
 
-  if(oldScreenMode == screenMode && screenMode != SCREEN_MODE_VOLTAGE_GRAPH)
+  if(oldScreenMode == SCREEN_MODE_VOLTAGE_GRAPH && screenMode != SCREEN_MODE_VOLTAGE_GRAPH)
   {
+    Serial.println("Redrawing overview screen");
     draw_static_overview_display();
     drawScreen();
   }
 
   if(oldScreenMode != screenMode && screenMode == SCREEN_MODE_VOLTAGE_GRAPH)
   {
+    Serial.println("Redrawing voltage graph screen");
     draw_voltage_graph_display(true);
   }
   

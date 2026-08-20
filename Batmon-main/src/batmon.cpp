@@ -120,7 +120,7 @@ void notificationHandler(BLERemoteCharacteristic* characteristic, uint8_t* data,
   }
   
   String message = decrypt(data, length);
-  Serial.println("Message received: " + message);
+  // Serial.println("Message received: " + message);
 
   if (message.startsWith("d15507")) {
     bm6_data.voltage = (uint16_t)strtol(message.substring(15, 18).c_str(), NULL, 16);
@@ -325,7 +325,6 @@ void initBM6(const char* address) {
 
 void get_batmon_data(struct BM6Data* data)
 {
-  Serial.print("Processing device: ");
   //getBM6Data(config.devices[0] .c_str());
   data->voltage = bm6_data.voltage;          /* get the newest datapoint (sampling timepoint unknown)*/
   data->temperature = bm6_data.temperature;  
