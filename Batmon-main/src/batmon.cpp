@@ -325,7 +325,12 @@ void initBM6(const char* address) {
 
 void get_batmon_data(struct BM6Data* data)
 {
-  //getBM6Data(config.devices[0] .c_str());
+  data->voltage = bm6_data.voltage;          /* get the newest datapoint (sampling timepoint unknown)*/
+  data->temperature = bm6_data.temperature;  
+}
+
+void get_batmon_data_and_store(struct BM6Data* data)
+{
   data->voltage = bm6_data.voltage;          /* get the newest datapoint (sampling timepoint unknown)*/
   data->temperature = bm6_data.temperature;  
 

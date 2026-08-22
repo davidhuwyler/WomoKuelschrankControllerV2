@@ -41,6 +41,7 @@ TaskHandle_t bleTaskHandle = NULL;
 
 /* ------------------------  Prototypes ------------------------ */
 void handle_time_every_second();
+void sample_voltage_and_store();
 void sample_voltage();
 
 /* ------------------------  100ms irq timer ------------------------ */
@@ -60,7 +61,7 @@ void IRAM_ATTR timerISR()
     isr_sample_voltage_trigger++;
     isr_count_seconds_trigger++;
     
-    if(isr_sample_voltage_trigger == 20)
+    if(isr_sample_voltage_trigger == 10)
     {
       if (xSemaphoreTake(workTodo.mutex, portMAX_DELAY))
       {
@@ -68,6 +69,7 @@ void IRAM_ATTR timerISR()
         xSemaphoreGive(workTodo.mutex);
       }
       isr_sample_voltage_trigger = 0;
+      sample_voltage();
     }
   }
       
@@ -126,7 +128,7 @@ void bleTask(void *parameter)
 
     while (true)
     {
-      sample_voltage();
+      sample_voltage_and_store();
       vTaskDelayUntil(&lastWakeTime, period);
     }
 }
@@ -137,6 +139,9 @@ void drawScreen() {
     drawScreen_Voltage(&old_voltage, &voltage_current);
     drawScreen_Disconnect(&old_voltage_disconnect, &voltage_disconnect);
     drawScreen_Timer(&old_time, &timer_min, &old_time_s, &timer_seconds);
+
+    Serial.println("Old values: voltage=" + String(old_voltage) + ", disconnect=" + String(old_voltage_disconnect) + ", timer_min=" + String(old_time) + ", timer_seconds=" + String(old_time_s) + ", state=" + String(old_state) );
+    Serial.println("Current values: voltage=" + String(voltage_current) + ", disconnect=" + String(voltage_disconnect) + ", timer_min=" + String(timer_min) + ", timer_seconds=" + String(timer_seconds) + ", state=" + String(state) );  
 }
 
 void set_state_value()
@@ -157,6 +162,7 @@ void set_state_value()
       state=true;
     }
     drawScreen_State(&old_state, &state);
+    delay(10);
   }
 }
 
@@ -171,6 +177,7 @@ void set_timer_value()
     screenMode = getScreenMode(oldScreenMode);
     timer_min = getEncoderValue();
     drawScreen_Timer(&old_time, &timer_min, &old_time_s, &timer_seconds);
+    delay(10);
   }
   if(timer_min != 0)
   {
@@ -189,6 +196,7 @@ void set_disconnect_value()
     screenMode = getScreenMode(oldScreenMode);
     voltage_disconnect = ((float)getEncoderValue())/100;
     drawScreen_Disconnect(&old_voltage_disconnect, &voltage_disconnect);
+    delay(10);
   }
 }
 
@@ -223,6 +231,13 @@ void handle_time_every_second()
   {
     timer_seconds = timer_seconds - 1;
   }
+}
+
+void sample_voltage_and_store()
+{
+  struct BM6Data data;
+  get_batmon_data_and_store(&data);
+  voltage_current = data.voltage/100.0;
 }
 
 void sample_voltage()
@@ -279,7 +294,7 @@ void setup() {
   timerAttachInterrupt(timer, &timerISR,true);
   timerAlarmWrite(timer, 100000, true);      // 100ms periodic interrupt
   timerAlarmEnable(timer);
-
+  drawScreen();
   Serial.println("Setup done");
 }
 

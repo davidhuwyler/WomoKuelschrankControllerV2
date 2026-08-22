@@ -111,7 +111,7 @@ void rotaryencoder_init()
 {
     ESP32Encoder::useInternalWeakPullResistors = puType::up;
 
-    encoder.attachHalfQuad(ENCODER_A_PIN, ENCODER_B_PIN);
+    encoder.attachSingleEdge(ENCODER_A_PIN, ENCODER_B_PIN);
     encoder.setCount(0);
     setEncoderRange(0, 0, 2); 
 

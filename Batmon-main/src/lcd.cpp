@@ -5,29 +5,29 @@
 
 TFT_eSPI tft = TFT_eSPI();  // Create object "tft"
 
-#define TEXT_FONT_VALUE 2
-#define TEXT_FONT_LABEL 1
+#define TEXT_FONT_VALUE 4
+#define TEXT_FONT_LABEL 2
 
 #define DISCONNECT_HIGHLIGHT_FROM_X 135  // Upper Right Quadrant Highlighter From Point: X
 #define DISCONNECT_HIGHLIGHT_FROM_Y 67  // Upper Right Quadrant Highlighter From Point: Y
 #define DISCONNECT_HIGHLIGHT_TO_X 225  // Upper Right Quadrant Highlighter To Point: X
 #define DISCONNECT_HIGHLIGHT_TO_Y DISCONNECT_HIGHLIGHT_FROM_Y  // Upper Right Quadrant Highlighter To Point: Y
 #define DISCONNECT_VALUE_X DISCONNECT_HIGHLIGHT_FROM_X
-#define DISCONNECT_VALUE_Y 5
+#define DISCONNECT_VALUE_Y 20
 #define DISCONNECT_TEXT_X DISCONNECT_HIGHLIGHT_FROM_X
-#define DISCONNECT_TEXT_Y 57
+#define DISCONNECT_TEXT_Y 51
 
 #define TIMER_HIGHLIGHT_FROM_X 15  // Lower Left Quadrant Highlighter From Point: X
 #define TIMER_HIGHLIGHT_FROM_Y 134  // Lower Left Quadrant Highlighter From Point: Y
 #define TIMER_HIGHLIGHT_TO_X 105  // Lower Left Quadrant Highlighter To Point: X
 #define TIMER_HIGHLIGHT_TO_Y TIMER_HIGHLIGHT_FROM_Y  // Lower Left Quadrant Highlighter To Point: Y
 #define TIMER_VALUE_X TIMER_HIGHLIGHT_FROM_X
-#define TIMER_VALUE_Y 72
+#define TIMER_VALUE_Y 87
 #define TIMER_SECONDS_VALUE_X TIMER_VALUE_X+50
 #define TIMER_SECONDS_VALUE_Y TIMER_VALUE_Y
 
 #define TIMER_TEXT_X TIMER_HIGHLIGHT_FROM_X
-#define TIMER_TEXT_Y 124
+#define TIMER_TEXT_Y 118
 
 #define STATE_HIGHLIGHT_FROM_X DISCONNECT_HIGHLIGHT_FROM_X  // Lower Right Quadrant Highlighter From Point: X
 #define STATE_HIGHLIGHT_FROM_Y TIMER_HIGHLIGHT_FROM_Y  // Lower Right Quadrant Highlighter From Point: Y
@@ -51,72 +51,59 @@ void lcd_init() {
 
 
 void drawScreen_State(bool* old_state, bool* state) {
-    if (*old_state != *state) {
-        tft.setTextColor(TFT_BLACK, TFT_BLACK);
-        tft.setTextDatum(TL_DATUM);
-        tft.setTextFont(TEXT_FONT_VALUE);
-        tft.drawString(String(*old_state? "ON" : "OFF"), STATE_VALUE_X, STATE_VALUE_Y);
-        
-        tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString(String(*state? "ON" : "OFF" ), STATE_VALUE_X, STATE_VALUE_Y);
-        
-        *old_state = *state;
-    }
+    tft.setTextColor(TFT_BLACK, TFT_BLACK);
+    tft.setTextDatum(TL_DATUM);
+    tft.setTextFont(TEXT_FONT_VALUE);
+    tft.drawString(String(*old_state? "ON" : "OFF"), STATE_VALUE_X, STATE_VALUE_Y);
+    
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.drawString(String(*state? "ON" : "OFF" ), STATE_VALUE_X, STATE_VALUE_Y);
+    
+    *old_state = *state;
 }
 
 
 void drawScreen_Voltage(float* old_voltage, float* voltage_current) {
-    if (int(*old_voltage * 100) != int(*voltage_current * 100)) {
-        tft.setTextColor(TFT_BLACK, TFT_BLACK);
-        tft.setTextDatum(TL_DATUM);
-        tft.setTextFont(TEXT_FONT_VALUE);
-        tft.drawString(String(*old_voltage), CURRENT_VALUE_X, CURRENT_VALUE_Y);
-        
-        tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString(String(*voltage_current), CURRENT_VALUE_X, CURRENT_VALUE_Y);
-        
-        *old_voltage = *voltage_current;
-    }
+    tft.setTextColor(TFT_BLACK, TFT_BLACK);
+    tft.setTextDatum(TL_DATUM);
+    tft.setTextFont(TEXT_FONT_VALUE);
+    tft.drawString(String(*old_voltage), CURRENT_VALUE_X, CURRENT_VALUE_Y);
+    
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.drawString(String(*voltage_current), CURRENT_VALUE_X, CURRENT_VALUE_Y);
+    
+    *old_voltage = *voltage_current;
 } 
 
 void drawScreen_Disconnect(float* old_voltage_disconnect, float* voltage_disconnect) {
-    if (*old_voltage_disconnect != *voltage_disconnect) {
-        tft.setTextColor(TFT_BLACK, TFT_BLACK);
-        tft.setTextDatum(TL_DATUM);
-        tft.setTextFont(TEXT_FONT_VALUE);
-        tft.drawString(String(*old_voltage_disconnect), DISCONNECT_VALUE_X, DISCONNECT_VALUE_Y);
-        
-        tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString(String(*voltage_disconnect), DISCONNECT_VALUE_X, DISCONNECT_VALUE_Y);
-        
-        *old_voltage_disconnect = *voltage_disconnect;
-    }
+    tft.setTextColor(TFT_BLACK, TFT_BLACK);
+    tft.setTextDatum(TL_DATUM);
+    tft.setTextFont(TEXT_FONT_VALUE);
+    tft.drawString(String(*old_voltage_disconnect), DISCONNECT_VALUE_X, DISCONNECT_VALUE_Y);
+    
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.drawString(String(*voltage_disconnect), DISCONNECT_VALUE_X, DISCONNECT_VALUE_Y);
+    
+    *old_voltage_disconnect = *voltage_disconnect;
 }
 
 void drawScreen_Timer(int* old_time, int* timer_min, int* old_time_s, int* timer_seconds) {
-    if (*old_time != *timer_min) {
         tft.setTextColor(TFT_BLACK, TFT_BLACK);
         tft.setTextDatum(TL_DATUM);
         tft.setTextFont(TEXT_FONT_VALUE);
         tft.drawString(String(*old_time), TIMER_VALUE_X, TIMER_VALUE_Y);
-        
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
         tft.drawString(String(*timer_min), TIMER_VALUE_X, TIMER_VALUE_Y);
-        
         *old_time = *timer_min;
-    }
 
-    if (*old_time_s != *timer_seconds) {
         tft.setTextColor(TFT_BLACK, TFT_BLACK);
         tft.setTextDatum(TL_DATUM);
         tft.setTextFont(1);
         tft.drawString(String(*old_time_s), TIMER_SECONDS_VALUE_X, TIMER_SECONDS_VALUE_Y);
-        
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
         tft.drawString(String(*timer_seconds), TIMER_SECONDS_VALUE_X, TIMER_SECONDS_VALUE_Y);
-        
         *old_time_s = *timer_seconds;
-    }
+
 }
 
 void draw_lcd_selector(bool* selector_on, int lcd_selected) {
@@ -231,7 +218,7 @@ void draw_voltage_graph_display(bool doInitScreen)
     {
         tft.setTextColor(TFT_BLACK, TFT_BLACK);
         tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
-        tft.setTextFont(TEXT_FONT_LABEL);
+        tft.setTextFont(1);
         tft.drawString(String(old_data_point->voltage), CURRENT_TEXT_X+50, 1);
         tft.drawString(String(old_data_point->temperature), DISCONNECT_TEXT_X+73, 1);
     }
@@ -243,7 +230,7 @@ void draw_voltage_graph_display(bool doInitScreen)
 
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
         tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
-        tft.setTextFont(TEXT_FONT_LABEL);
+        tft.setTextFont(1);
         tft.drawString("Voltage:", CURRENT_TEXT_X, 1);
         tft.drawString("Temperature:", 120, 1);
         tft.drawString("FS: ", 120, 11);
@@ -271,7 +258,7 @@ void draw_voltage_graph_display(bool doInitScreen)
 
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
-    tft.setTextFont(TEXT_FONT_LABEL);
+    tft.setTextFont(1);
     tft.drawString(String(data_point->voltage), CURRENT_TEXT_X+50, 1);
     tft.drawString(String(data_point->temperature), 120+73, 1);
     tft.drawString(String(fillLevel*5), 120+73, 11);
@@ -284,8 +271,8 @@ void draw_voltage_graph_display(bool doInitScreen)
     tft.drawString(String(fillLevel*5), 120+17, 11);
 
     float x_delta=((float)fillLevel)/x_range;
-    Serial.println("fillLevel: "+String(fillLevel));
-    Serial.println("x_delta: "+String(x_delta));
+    // Serial.println("fillLevel: "+String(fillLevel));
+    // Serial.println("x_delta: "+String(x_delta));
 
     for(int i=0; i<x_range; i++)
     {
@@ -298,7 +285,7 @@ void draw_voltage_graph_display(bool doInitScreen)
         tft.drawPixel(x_pos,106+1,TFT_DARKGREY);
 
         data_point=batmonRing_getValue((uint16_t)(x_delta*(float)i));
-        Serial.println("data_point ["+String((uint16_t)(x_delta*(float)i))+"]: "+String(data_point->voltage)+", "+String(data_point->temperature));
+        //Serial.println("data_point ["+String((uint16_t)(x_delta*(float)i))+"]: "+String(data_point->voltage)+", "+String(data_point->temperature));
         uint16_t y_voltage = y_pos - ((y_range * (data_point->voltage - 1000)) / 400);
         uint16_t y_temp =    y_pos - ((y_range * data_point->temperature) / 40);
         tft.drawPixel(x_pos,y_voltage,TFT_SKYBLUE);
