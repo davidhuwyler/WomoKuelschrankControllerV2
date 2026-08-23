@@ -29,7 +29,6 @@ struct todoFlags {
   bool draw_lcd_selector = false;
   bool drawScreen_Voltage = false;
   bool drawScreen_Timer = false;
-  SemaphoreHandle_t mutex = NULL;
 };
 struct todoFlags workTodo;
 
@@ -53,21 +52,13 @@ void IRAM_ATTR timerISR()
 {
   if(screenMode == SCREEN_MODE_OVERVIEW)
   {
-    if (xSemaphoreTake(workTodo.mutex, portMAX_DELAY))
-    {
-      workTodo.draw_lcd_selector = true;
-      xSemaphoreGive(workTodo.mutex);
-    }
+    workTodo.draw_lcd_selector = true;
     isr_sample_voltage_trigger++;
     isr_count_seconds_trigger++;
     
     if(isr_sample_voltage_trigger == 10)
     {
-      if (xSemaphoreTake(workTodo.mutex, portMAX_DELAY))
-      {
-        workTodo.drawScreen_Voltage = true;
-        xSemaphoreGive(workTodo.mutex);
-      }
+      workTodo.drawScreen_Voltage = true;
       isr_sample_voltage_trigger = 0;
       sample_voltage();
     }
@@ -76,49 +67,33 @@ void IRAM_ATTR timerISR()
   if(isr_count_seconds_trigger == 10)
   {
     handle_time_every_second();
-    if (xSemaphoreTake(workTodo.mutex, portMAX_DELAY))
-    {
-      workTodo.drawScreen_Timer = true;
-      xSemaphoreGive(workTodo.mutex);
-    }
+    workTodo.drawScreen_Timer = true;
     isr_count_seconds_trigger = 0;    
   }    
 }
 
 /* ------------------------  FreeRTOS Tasks ------------------------ */
-void lcdTask(void *parameter)
+
+/* update_screen  was a FreeRTOS task in the past... now called from main thread*/
+void update_screen()
 {
-    while (true)
-    {
-      if(workTodo.draw_lcd_selector == true)
-      {
-        draw_lcd_selector(&selector_on, lcd_selected);
-        if (xSemaphoreTake(workTodo.mutex, portMAX_DELAY))
-        {
-          workTodo.draw_lcd_selector = false;
-          xSemaphoreGive(workTodo.mutex);
-        }
-      }
-      if(workTodo.drawScreen_Voltage == true)
-      {
-        drawScreen_Voltage(&old_voltage, &voltage_current);
-        if (xSemaphoreTake(workTodo.mutex, portMAX_DELAY))
-        {
-          workTodo.drawScreen_Voltage = false;
-          xSemaphoreGive(workTodo.mutex);
-        }
-      }
-      if(workTodo.drawScreen_Timer == true)
-      {
-        drawScreen_Timer(&old_time, &timer_min, &old_time_s, &timer_seconds);
-        if (xSemaphoreTake(workTodo.mutex, portMAX_DELAY))
-        {
-          workTodo.drawScreen_Timer = false;
-          xSemaphoreGive(workTodo.mutex);
-        }
-      }
-      vTaskDelay(pdMS_TO_TICKS(20));
-    }
+  if(workTodo.draw_lcd_selector == true)
+  {
+    draw_lcd_selector(&selector_on, lcd_selected);
+    workTodo.draw_lcd_selector = false;
+
+  }
+  if(workTodo.drawScreen_Voltage == true)
+  {
+    drawScreen_Voltage(&old_voltage, &voltage_current);
+    workTodo.drawScreen_Voltage = false;
+
+  }
+  if(workTodo.drawScreen_Timer == true)
+  {
+    drawScreen_Timer(&old_time, &timer_min, &old_time_s, &timer_seconds);
+    workTodo.drawScreen_Timer = false;
+  }
 }
 
 void bleTask(void *parameter)
@@ -276,14 +251,7 @@ void setup() {
   rotaryencoder_init();
   batmon_init();
   lcd_init();
-  workTodo.mutex = xSemaphoreCreateMutex();
   pinMode(POWER_OUT_PIN, OUTPUT);
-
-
-  xTaskCreatePinnedToCore(
-      lcdTask,"lcdTask", 4096, NULL, 1, &lcdTaskHandle,
-      0               // Core (0 or 1)
-  );
 
   xTaskCreatePinnedToCore(
       bleTask,"bleTask", 4096, NULL, 1, &bleTaskHandle,
@@ -321,6 +289,7 @@ void loop() {
   }
   else if(screenMode == SCREEN_MODE_OVERVIEW)
   {
+    update_screen();  
     if(lcd_selected != getEncoderValue())
     {
       lcd_selected = getEncoderValue();
@@ -334,4 +303,5 @@ void loop() {
   eval_power_output();
 
   oldScreenMode = screenMode;
+  delay(20);
 }

@@ -5,11 +5,12 @@
 #define ENCODER_A_PIN   36
 #define ENCODER_B_PIN   37
 #define ENCODER_BTN_PIN 38
-
+#define ENCODER_BTN_DEBOUNCE_MS 30U
 
 volatile bool encoderButtonPressed = false;
 volatile bool encoderButtonToggle = false;
 volatile bool oneSecondTick = false;
+volatile uint32_t lastButtonInterruptMs = 0;
 
 static uint32_t rotaryModuloVal=0xFFFFFFFF;
 static uint32_t rotaryMinVal = 0;
@@ -88,20 +89,27 @@ enum enumScreenMode getScreenMode(enum enumScreenMode currentScreenMode) {
 
 void IRAM_ATTR encoderButtonPressedISR()
 {
+    const uint32_t now = millis();
+
+    if ((now - lastButtonInterruptMs) < ENCODER_BTN_DEBOUNCE_MS) {
+        return;
+    }
+    lastButtonInterruptMs = now;
+
     if(digitalRead(ENCODER_BTN_PIN) == LOW) {
         if(encoderButtonPressed) {
             // Button is already pressed, ignore this interrupt
             return;
         }
         encoderButtonPressed = true;
-        buttonPressedTime = millis();
+        buttonPressedTime = now;
     } else {
         if(!encoderButtonPressed) {
             // Button is already released, ignore this interrupt
             return;
         }
         encoderButtonPressed = false;
-        buttonReleaseTime = millis();
+        buttonReleaseTime = now;
         encoderButtonToggle = !encoderButtonToggle;
         longpressDone = false;
     }
