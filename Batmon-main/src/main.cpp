@@ -165,7 +165,7 @@ void set_disconnect_value()
   highlight_state_off();
   highlight_disconnect();
   highlight_timer_off();
-  setEncoderRange((int)(voltage_disconnect*100),1190,1300);
+  setEncoderRange((int)(voltage_disconnect*100),1170,1300);
   while(screenMode == SCREEN_MODE_SELECTED_VALUE)
   {
     screenMode = getScreenMode(oldScreenMode);
