@@ -55,13 +55,13 @@ void IRAM_ATTR timerISR()
     workTodo.draw_lcd_selector = true;
     isr_sample_voltage_trigger++;
     isr_count_seconds_trigger++;
-    
-    if(isr_sample_voltage_trigger == 10)
-    {
-      workTodo.drawScreen_Voltage = true;
-      isr_sample_voltage_trigger = 0;
-      sample_voltage();
-    }
+  }
+
+  if(isr_sample_voltage_trigger == 10)
+  {
+    workTodo.drawScreen_Voltage = true;
+    isr_sample_voltage_trigger = 0;
+    sample_voltage();
   }
       
   if(isr_count_seconds_trigger == 10)
