@@ -185,7 +185,7 @@ void draw_static_overview_display()
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextDatum(TL_DATUM); // Set text datum to top-left (anchor point)
     tft.setTextFont(TEXT_FONT_LABEL);
-    tft.drawString("Current", CURRENT_TEXT_X, CURRENT_TEXT_Y);
+    tft.drawString("Voltage", CURRENT_TEXT_X, CURRENT_TEXT_Y);
     tft.drawString("Disconnect", DISCONNECT_TEXT_X, DISCONNECT_TEXT_Y);
     tft.drawString("Timer", TIMER_TEXT_X, TIMER_TEXT_Y);
     tft.drawString("State", STATE_TEXT_X, STATE_TEXT_Y);
