@@ -26,7 +26,7 @@ Config config = {
 
 //------------Ringbuffer-----------------
 
-// 64k samples ring buffer -> Store 22h of samples (0.2Hz sampling rate)
+// 16k samples ring buffer -> Store 22h of samples (0.2Hz sampling rate)
 #define BUFFER_SIZE 1024*16
 #define BUFFER_MASK (BUFFER_SIZE - 1)
 
