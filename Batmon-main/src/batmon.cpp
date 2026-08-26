@@ -32,12 +32,14 @@ Config config = {
 
 BM6Data* ringBuffer;
 uint16_t writeIndex = 0;
+uint32_t writeCount = 0; 
 bool bufferFull = false;
 
 void batmonRing_addValue(BM6Data* value)
 {
     ringBuffer[writeIndex] = *value;
     writeIndex = (writeIndex + 1) & BUFFER_MASK;
+    writeCount++;
 
     if (writeIndex == 0)
         bufferFull = true;
@@ -62,6 +64,12 @@ uint32_t batmonRing_getFillLevel()
     else
         return writeIndex;
 }
+
+uint32_t batmonRing_getWriteCount()
+{
+    return writeCount;
+}
+
 
 //------------https://github.com/Goodwillson/Batmon----------------
 

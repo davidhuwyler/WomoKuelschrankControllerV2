@@ -207,6 +207,7 @@ void draw_voltage_graph_display(bool doInitScreen)
     uint16_t x_range=210;
     uint16_t y_range=114;
     uint32_t fillLevel = batmonRing_getFillLevel();
+    uint32_t writeCount = batmonRing_getWriteCount();
     uint32_t current_intex;
     String Fullscale;
     String Time;
@@ -262,7 +263,7 @@ void draw_voltage_graph_display(bool doInitScreen)
     tft.drawString(String(data_point.temperature), 120+73, 1);
     
 
-    Time = String((fillLevel*5)/60) + "m " + String((fillLevel*5)%60) + "s";
+    Time = String((writeCount*5)/60) + "m " + String((writeCount*5)%60) + "s";
     tft.drawString(Time, 120+73, 11);
 
     if(fillLevel < x_range)
