@@ -61,7 +61,6 @@ void IRAM_ATTR timerISR()
   {
     workTodo.drawScreen_Voltage = true;
     isr_sample_voltage_trigger = 0;
-    sample_voltage();
   }
       
   if(isr_count_seconds_trigger == 10)
@@ -85,6 +84,7 @@ void update_screen()
   }
   if(workTodo.drawScreen_Voltage == true)
   {
+    sample_voltage();
     drawScreen_Voltage(&old_voltage, &voltage_current);
     workTodo.drawScreen_Voltage = false;
 
