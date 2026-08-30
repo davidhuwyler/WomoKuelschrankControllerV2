@@ -264,7 +264,7 @@ void draw_voltage_graph_display(bool doInitScreen)
     
 
     Time = String((writeCount*5)/60) + "m " + String((writeCount*5)%60) + "s";
-    tft.drawString(Time, 120+73, 11);
+    tft.drawString(Time, 40+113, 11);
 
     if(fillLevel < x_range)
     {
