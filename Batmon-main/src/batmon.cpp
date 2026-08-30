@@ -12,7 +12,11 @@ const uint8_t key[16] = {108, 101, 97, 103, 101, 110, 100, 255, 254, 48, 49, 48,
 // Precomputed encrypted command
 uint8_t encryptedCommandBytes[16];
 
+BLEClient* client = nullptr;
 BM6Data bm6_data = {0, 0};
+unsigned long lastDataTimestamp = 0; // Timestamp of last received data
+bool isConnectedToBM6 = false; // Track connection status
+const unsigned long DATA_FRESHNESS_THRESHOLD = 5000; // 5 seconds in milliseconds
 
 
 struct Config {  
@@ -26,18 +30,20 @@ Config config = {
 
 //------------Ringbuffer-----------------
 
-// 64k samples ring buffer -> Store 22h of samples (0.2Hz sampling rate)
+// 16k samples ring buffer -> Store 22h of samples (0.2Hz sampling rate)
 #define BUFFER_SIZE 1024*16
 #define BUFFER_MASK (BUFFER_SIZE - 1)
 
 BM6Data* ringBuffer;
 uint16_t writeIndex = 0;
+uint32_t writeCount = 0; 
 bool bufferFull = false;
 
 void batmonRing_addValue(BM6Data* value)
 {
     ringBuffer[writeIndex] = *value;
     writeIndex = (writeIndex + 1) & BUFFER_MASK;
+    writeCount++;
 
     if (writeIndex == 0)
         bufferFull = true;
@@ -62,6 +68,12 @@ uint32_t batmonRing_getFillLevel()
     else
         return writeIndex;
 }
+
+uint32_t batmonRing_getWriteCount()
+{
+    return writeCount;
+}
+
 
 //------------https://github.com/Goodwillson/Batmon----------------
 
@@ -125,6 +137,7 @@ void notificationHandler(BLERemoteCharacteristic* characteristic, uint8_t* data,
   if (message.startsWith("d15507")) {
     bm6_data.voltage = (uint16_t)strtol(message.substring(15, 18).c_str(), NULL, 16);
     bm6_data.temperature = (int16_t)strtol(message.substring(8, 10).c_str(), NULL, 16) -3; // -3 is a dave calibration
+    lastDataTimestamp = millis(); // Update timestamp when data is received
   }    
 }
 
@@ -134,8 +147,9 @@ void getBM6Data(const char* address) {
   Serial.println("Starting BM6 data retrieval...");
   bm6_data.voltage = 0;
   bm6_data.temperature = 0;
+  lastDataTimestamp = 0;
 
-  BLEClient* client = nullptr;
+  client = nullptr;
   try {
     client = BLEDevice::createClient();
     BLEAddress bleAddress(address);
@@ -149,11 +163,13 @@ void getBM6Data(const char* address) {
     }
 
     Serial.println("Connected to BLE device.");
+    isConnectedToBM6 = true;
 
     NimBLERemoteService* service = client->getService("FFF0");
     if (service == nullptr) {
       Serial.println("Failed to find the service with UUID FFF0.");
       client->disconnect();
+      isConnectedToBM6 = false;
       vTaskDelay(pdMS_TO_TICKS(1000));
       return;
     }
@@ -163,6 +179,7 @@ void getBM6Data(const char* address) {
     if (charFF3 == nullptr || charFF4 == nullptr) {
       Serial.println("Failed to find the characteristics with UUID FFF3 or FFF4.");
       client->disconnect();
+      isConnectedToBM6 = false;
       vTaskDelay(pdMS_TO_TICKS(1000));
       return;
     }
@@ -183,6 +200,7 @@ void getBM6Data(const char* address) {
       if (millis() - startTime > 10000) {
         Serial.println("Timeout: No data received.");
         client->disconnect();
+        isConnectedToBM6 = false;
         vTaskDelay(pdMS_TO_TICKS(1000));
         return;
       }
@@ -206,12 +224,14 @@ void getBM6Data(const char* address) {
     Serial.println(e.what());
     if (client) {
       client->disconnect();
+      isConnectedToBM6 = false;
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   } catch (...) {
     Serial.println("An unknown error occurred.");
     if (client) {
       client->disconnect();
+      isConnectedToBM6 = false;
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }
@@ -221,6 +241,7 @@ void getBM6Data(const char* address) {
       client->disconnect();
     }    
     client = nullptr;
+    isConnectedToBM6 = false;
     Serial.println("Disconnected from BLE device.");    
     vTaskDelay(pdMS_TO_TICKS(500)); // Wait for the deinit and disconnect to complete
   } 
@@ -231,8 +252,9 @@ void initBM6(const char* address) {
   Serial.println("Starting BM6 init...");
   bm6_data.voltage = 0;
   bm6_data.temperature = 0;
+  lastDataTimestamp = 0;
 
-  BLEClient* client = nullptr;
+  client = nullptr;
   try {
     client = BLEDevice::createClient();
     BLEAddress bleAddress(address);
@@ -246,11 +268,13 @@ void initBM6(const char* address) {
     }
 
     Serial.println("Connected to BLE device.");
+    isConnectedToBM6 = true;
 
     NimBLERemoteService* service = client->getService("FFF0");
     if (service == nullptr) {
       Serial.println("Failed to find the service with UUID FFF0.");
       client->disconnect();
+      isConnectedToBM6 = false;
       vTaskDelay(pdMS_TO_TICKS(1000));
       return;
     }
@@ -260,6 +284,7 @@ void initBM6(const char* address) {
     if (charFF3 == nullptr || charFF4 == nullptr) {
       Serial.println("Failed to find the characteristics with UUID FFF3 or FFF4.");
       client->disconnect();
+      isConnectedToBM6 = false;
       vTaskDelay(pdMS_TO_TICKS(1000));
       return;
     }
@@ -323,6 +348,28 @@ void initBM6(const char* address) {
   // } 
 }
 
+void reconnectBM6IfNeeded(const char* address) {
+  unsigned long currentTime = millis();
+  unsigned long timeSinceLastData = currentTime - lastDataTimestamp;
+  
+  // Check if data is stale (older than 5 seconds)
+  if (lastDataTimestamp > 0 && timeSinceLastData > DATA_FRESHNESS_THRESHOLD) {
+    Serial.print("Data is stale (");
+    Serial.print(timeSinceLastData);
+    Serial.println("ms old). Reconnecting to BM6...");
+    
+    // Disconnect if connected
+    if (client) {
+      client->disconnect();
+      isConnectedToBM6 = false;
+      vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+    
+    // Reconnect
+    initBM6(address);
+  }
+}
+
 void get_batmon_data(struct BM6Data* data)
 {
   data->voltage = bm6_data.voltage;          /* get the newest datapoint (sampling timepoint unknown)*/
@@ -331,6 +378,7 @@ void get_batmon_data(struct BM6Data* data)
 
 void get_batmon_data_and_store(struct BM6Data* data)
 {
+  reconnectBM6IfNeeded(config.devices[0].c_str());
   data->voltage = bm6_data.voltage;          /* get the newest datapoint (sampling timepoint unknown)*/
   data->temperature = bm6_data.temperature;  
 
