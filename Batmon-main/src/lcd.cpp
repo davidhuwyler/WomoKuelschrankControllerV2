@@ -234,8 +234,8 @@ void draw_voltage_graph_display(bool doInitScreen)
         tft.setTextFont(1);
         tft.drawString("Voltage:", CURRENT_TEXT_X, 1);
         tft.drawString("Temperature:", 120, 1);
-        tft.drawString("FS: ", 120, 11);
-        tft.drawString("T: ", 120+60,11);
+        tft.drawString("FS: ", 40, 11);
+        tft.drawString("T: ", 40+100,11);
 
         tft.setTextColor(TFT_SKYBLUE, TFT_BLACK);
         tft.drawString("14V", 0, 13);
@@ -263,7 +263,7 @@ void draw_voltage_graph_display(bool doInitScreen)
     
 
     Time = String((fillLevel*5)/60) + "m " + String((fillLevel*5)%60) + "s";
-    tft.drawString(Time, 120+73, 11);
+    tft.drawString(Time, 40+113, 11);
 
     if(fillLevel < x_range)
     {
@@ -271,7 +271,7 @@ void draw_voltage_graph_display(bool doInitScreen)
     } 
 
     Fullscale = String((fillLevel*5)/60) + "m " + String((fillLevel*5)%60) + "s";
-    tft.drawString(Fullscale, 120+17, 11);
+    tft.drawString(Fullscale, 40+17, 11);
 
     float x_delta=((float)fillLevel)/x_range;
     // Serial.println("fillLevel: "+String(fillLevel));
